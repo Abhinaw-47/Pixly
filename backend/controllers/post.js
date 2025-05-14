@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import express from "express";
 import PostMessage from "../models/postMessage.js";
-const router=express.Router();
+
 export const getPosts=async(req,res)=>{
 try {
     const post=await PostMessage.find();
@@ -14,8 +14,8 @@ try {
 }
 
 export const createPost=async(req,res)=>{
-   const {title,description,message,name,selectedFile,tags}=req.body;
-    const newPost=new PostMessage({title,description,message,name,selectedFile,tags});
+   const post =req.body;
+    const newPost=new PostMessage({...post,creator:req.userId});
    try {
     await newPost.save();
     res.status(201).json(newPost);
@@ -37,6 +37,7 @@ export const updatePost=async(req,res)=>{
 
 export const deletePost=async(req,res)=>{
 const {id}=req.params;
+
 if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send('No post with that id')
 await PostMessage.findByIdAndDelete(id);
 
@@ -45,9 +46,19 @@ res.json({message:'Post deleted successfully'});
 }
 export const likePost=async(req,res)=>{
    const{id}=req.params;
+     
+   if(!req.userId) return res.json({message:'Unauthenticated'});
    if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send('No post with that id');
    const post=await PostMessage.findById(id);
-   const updatedPost=await PostMessage.findByIdAndUpdate(id,{likeCount:post.likeCount+1},{new:true});
+   const index=post.likes.findIndex((id)=>id===String(req.userId));
+   if(index===-1){
+       post.likes.push(req.userId);
+   }
+   else{
+       post.likes=post.likes.filter((id)=>id!==String(req.userId));
+   }
+
+   const updatedPost=await PostMessage.findByIdAndUpdate(id,post,{new:true});
    res.json(updatedPost);
 
 

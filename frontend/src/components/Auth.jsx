@@ -4,6 +4,7 @@ import { FaUser, FaEnvelope, FaLock, FaRedo } from 'react-icons/fa';
 import {jwtDecode} from 'jwt-decode'
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { signIn,signUp } from '../actions/auth';
 function Auth() {
   const [postData, setPostData] = React.useState({
     firstName: '',
@@ -20,6 +21,11 @@ function Auth() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if(isSignUp){
+      dispatch(signUp(postData, navigate));
+    }else{
+      dispatch(signIn(postData, navigate));
+    }
   };
 
   const handleChange = (e) => {

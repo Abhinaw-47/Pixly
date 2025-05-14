@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
 import Form from './Form';
 import Posts from './Posts/Posts';
+import { useLocation } from 'react-router-dom';
 
 import '../App.css'
+import { useEffect } from 'react';
 const Home = () => {
   const [showForm, setShowForm] = useState(false);
   const [currentId, setCurrentId] = useState(0);
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('profile')));
 
+  const location = useLocation();
+    useEffect(() => {
+        setUser(JSON.parse(localStorage.getItem('profile')));
+      }, [location]);
   return (
     <div style={{ position: 'relative', padding: '20px' }}>
       {/* Upload Button at Top-Right */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-        <button
+        {user?.result &&(
+<button
           onClick={() => setShowForm(true)}
           style={{
             padding: '10px 20px',
@@ -25,10 +33,13 @@ const Home = () => {
         >
           Upload your pic
         </button>
+
+        )}
+        
       </div>
 
       {/* Posts always visible */}
-      <Posts setCurrentId={setCurrentId} setShowForm={setShowForm}/>
+      <Posts setCurrentId={setCurrentId} setShowForm={setShowForm} user = {user} setUser={setUser} />
 
       {/* Overlay with centered form */}
       {showForm && (
