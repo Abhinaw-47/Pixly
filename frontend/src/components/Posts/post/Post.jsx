@@ -4,20 +4,41 @@ import moment from 'moment';
 import { useDispatch } from 'react-redux';
 import { deletePost, likePost } from '../../../actions/post';
 import { useLocation } from 'react-router-dom';
-const Post = ({ post,setCurrentId ,setShowForm,setUser,user}) => {
+import { useState } from 'react';
+import { useEffect } from 'react';
+const Post = ({ post,setCurrentId ,setShowForm}) => {
 const dispatch=useDispatch();
 const location=useLocation();
   const edithandler=()=>{ 
     setCurrentId(post._id);
     setShowForm(true);
   }
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('profile')));
+
+     useEffect(() => {
+         setUser(JSON.parse(localStorage.getItem('profile')));
+       }, [location]);
+ const isVideo = post.selectedFile?.startsWith("data:video");
   return (
     <div style={{ width: '100%', maxWidth: '500px', margin: '20px auto', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden', backgroundColor: '#fdfdfd' }}>
-      <img src={post.selectedFile} alt="Post" style={{ width: '100%', height: '300px', objectFit: 'cover' }} />
-      <div style={{ padding: '16px' }}>
+ {isVideo ? (
+  <video
+    src={post.selectedFile}
+    controls
+    style={{ width: '100%', height: '300px', objectFit: 'cover' }}
+  />
+) : (
+  <img
+    src={post.selectedFile}
+    alt="Post"
+    style={{ width: '100%', height: '300px', objectFit: 'cover' }}
+  />
+)}
+  {/* rest of your post content */}
+    <div style={{ padding: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>{post.name}</h3>
-          {(user?.result?.googleId === post?.creator || user?.result?.creator=== post?._id) && (
+          {(user?.result?.googleId === post?.creator || user?.result?._id=== post?.creator) && (
               <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', color: '#555' }} onClick={edithandler}>
             <FaEdit /> Edit
           </button>
@@ -29,18 +50,18 @@ const location=useLocation();
         <p style={{ color: '#555' }}>{post.description}</p>
         <p style={{ color: '#888', fontStyle: 'italic' }}>{post.tags.map(tag => `#${tag} `)}</p>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>
-          {(user?.result?.googleId === post?.creator || user?.result?.creator=== post?._id) ? (
+          {(user?.result) ? (
             <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', color: '#555' }} onClick={() => dispatch(likePost(post._id))}>
             <FaThumbsUp /> {post.likes?.length} Likes
           </button>
           ):(
             <>
-            <FaThumbsUp /> {post.likes?.length} Likes
+             {post.likes?.length} Likes
             </>
             
           )}
           
-          {(user?.result?.googleId === post?.creator || user?.result?.creator=== post?._id) && (
+          {(user?.result?.googleId === post?.creator || user?.result?._id=== post?.creator) && (
             <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', color: 'crimson' }} onClick={()=>dispatch(deletePost(post._id))}>
             <FaTrash /> Delete
           </button>
@@ -48,7 +69,12 @@ const location=useLocation();
           
         </div>
       </div>
-    </div>
+</div>
+
+    // <div style={{ width: '100%', maxWidth: '500px', margin: '20px auto', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden', backgroundColor: '#fdfdfd' }}>
+    //   <img src={post.selectedFile} alt="Post" style={{ width: '100%', height: '300px', objectFit: 'cover' }} />
+    
+    // </div>
   );
 };
 

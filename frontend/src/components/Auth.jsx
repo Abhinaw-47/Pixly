@@ -27,6 +27,7 @@ function Auth() {
       dispatch(signIn(postData, navigate));
     }
   };
+  
 
   const handleChange = (e) => {
     setPostData({ ...postData, [e.target.name]: e.target.value });

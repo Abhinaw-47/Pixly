@@ -12,6 +12,26 @@ try {
 }
 
 }
+export const getPostBySearch=async(req,res)=>{
+   const {searchQuery}=req.query;
+   
+   try {
+      const keyword=new RegExp(searchQuery,'i');
+      const posts=await PostMessage.find({
+         $or:[
+            {title:{$regex:keyword}},
+            {description:{ $regex:keyword}},
+            {name:{ $regex:keyword}},
+            {tags:{ $regex:keyword}}
+         ]
+   });
+   
+      res.json({data:posts});
+      
+   } catch (error) {
+      res.status(404).json({message:error.message});
+   }
+}
 
 export const createPost=async(req,res)=>{
    const post =req.body;
