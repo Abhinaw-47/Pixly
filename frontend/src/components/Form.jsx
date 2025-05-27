@@ -10,7 +10,7 @@ const Form = ({currentId, setCurrentId,setShowForm}) => {
     tags: '',
     selectedFile: '',
   });
-  const post =useSelector((state)=>currentId?state.post.find((post)=>post._id===currentId):null);
+  const post =useSelector((state)=>currentId?state.post.posts.find((post)=>post._id===currentId):null);
 const user=JSON.parse(localStorage.getItem("profile"));
   useEffect(()=>{
 if(post){

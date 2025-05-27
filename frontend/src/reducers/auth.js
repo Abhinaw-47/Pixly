@@ -1,6 +1,6 @@
 
 
-export default (state={authData:null},action)=>{
+export default (state={authData:null,onlineUsers:[]},action)=>{
     switch(action.type){
         case 'AUTH':
             localStorage.setItem('profile',JSON.stringify({...action?.data}));
