@@ -8,6 +8,9 @@ export default (state={authData:null,onlineUsers:[]},action)=>{
         case 'LOGOUT':
             localStorage.clear();
             return {...state,authData:null};
+
+        case 'SET_ONLINE_USERS':
+            return {...state,onlineUsers:action.payload}; 
         default:
             return state;
     }

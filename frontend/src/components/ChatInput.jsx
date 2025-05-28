@@ -29,7 +29,7 @@ const ChatInput = () => {
   };
 
   return (
-    <div className="sticky bottom-0 p-8 bg-gradient-to-r from-gray-800 to-gray-700 border-t border-gray-700/50 backdrop-blur-sm">
+    <div className="stiky bottom-0 p-8 bg-gradient-to-r from-gray-800 to-gray-700 border-t border-gray-700/50 backdrop-blur-sm">
       {/* Image Preview */}
       <AnimatePresence>
         {post.image && (
@@ -158,7 +158,7 @@ const ChatInput = () => {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files[0];

@@ -3,11 +3,21 @@ import ChatContainer from './ChatContainer';
 import { useSelector, useDispatch } from 'react-redux';
 import { FaUserCircle, FaUsers, FaComments, FaSearch } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import{connectSocket,getSocket} from '../api';
+import { useEffect } from 'react';
 
 const Chat = () => {
   const dispatch = useDispatch();
   const { users, isUserLoading, selectedUser} = useSelector((state) => state.message);
   const {onlineUsers} = useSelector((state) => state.auth);
+ useEffect(()=>{
+  const socket = connectSocket();
+  socket.on("getOnlineUsers", (UserIds) => {
+    dispatch({ type: "SET_ONLINE_USERS", payload: UserIds });
+  })
+
+ },[])
+
 
   if (!users?.length && !isUserLoading) {
     return (

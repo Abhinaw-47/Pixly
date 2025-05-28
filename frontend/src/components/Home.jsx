@@ -3,7 +3,7 @@ import Form from './Form';
 import Posts from './Posts/Posts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { FaSearch, FaComments } from 'react-icons/fa';
+import { FaSearch, FaComments, FaUpload } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getPostsBySearch } from '../actions/post';
 import { connectSocket } from '../api';
@@ -33,9 +33,7 @@ const Home = ({ showForm, setShowForm }) => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+    if (e.key === 'Enter') handleSearch();
   };
 
   useEffect(() => {
@@ -45,40 +43,33 @@ const Home = ({ showForm, setShowForm }) => {
   }, [dispatch, searchQuery]);
 
   useEffect(() => {
-    // setUser(JSON.parse(localStorage.getItem('profile')));
-const user=JSON.parse(localStorage.getItem("profile"));
-if(user){
-  connectSocket()
-}
-    
+    setUser(JSON.parse(localStorage.getItem('profile')));
+    const currUser= JSON.parse(localStorage.getItem('profile'));
+    if (currUser) connectSocket();
   }, [location]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Fixed Search Bar */}
-      <div className="fixed top-[110px] w-full px-4">
-  <div className="relative w-full max-w-md mx-auto">
-    {/* your input and button code */}
-     <input
+      <div className="fixed top-[110px] w-full px-4 z-40">
+        <div className="relative w-full max-w-md mx-auto">
+          <input
             type="text"
             placeholder="Search posts..."
             value={search}
             onKeyDown={handleKeyDown}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-gray-800/90 backdrop-blur-sm text-white placeholder-gray-400 px-5 py-4 pr-14 rounded-2xl border border-gray-700/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 focus:outline-none shadow-lg"
-            aria-label="Search Posts"
           />
           <button
-           
             onClick={handleSearch}
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 p-3 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg"
             aria-label="Search"
           >
             <FaSearch size={16} className="text-white" />
           </button>
-  </div>
-</div>
-      
+        </div>
+      </div>
 
       {/* Main Content */}
       <motion.div 
@@ -93,7 +84,9 @@ if(user){
       </motion.div>
 
       {/* Floating Chat Button */}
-      <motion.button
+      {user && (
+        <div>
+          <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ duration: 0.5, delay: 0.8 }}
@@ -105,6 +98,23 @@ if(user){
       >
         <FaComments size={24} />
       </motion.button>
+        {/* Floating Upload Post Button */}
+          <motion.button
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setShowForm(true)}
+        title="Upload Post"
+        className="fixed top-[120px] right-6 z-50 w-14 h-14 bg-gradient-to-br from-purple-600 to-indigo-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:from-purple-700 hover:to-indigo-600 transition-all duration-300 border border-purple-300/20"
+      >
+        <FaUpload size={20} />
+      </motion.button>
+        </div>
+      )
+      }
+    
+     
 
       {/* Form Modal */}
       <AnimatePresence>
@@ -144,12 +154,8 @@ if(user){
         transition={{ duration: 0.5, delay: 1 }}
         className="bg-gray-900/50 border-t border-gray-800/50 mt-auto"
       >
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="text-center">
-            <p className="text-gray-500 text-sm">
-              © 2025 Pixly by ABHINAW ANAND. All rights reserved.
-            </p>
-          </div>
+        <div className="max-w-6xl mx-auto px-6 py-8 text-center">
+          <p className="text-gray-500 text-sm">© 2025 Pixly by ABHINAW ANAND. All rights reserved.</p>
         </div>
       </motion.footer>
     </div>

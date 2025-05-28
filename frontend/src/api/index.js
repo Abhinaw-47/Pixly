@@ -26,19 +26,20 @@ export const getMessages=(id)=>API.get(`/messages/${id}`);
 export const sendMessage=(id,formData)=>API.post(`/messages/${id}`,formData);
 
 export const connectSocket = () => {
-
+    const user = JSON.parse(localStorage.getItem("profile"));
       if (socket && socket.connected) return socket;
     if (!socket) {
         const token = JSON.parse(localStorage.getItem("profile"))?.token;
         socket = io("http://localhost:5000", {
-            auth: {
-                token: token
-            }
+            query: {
+                userId:user?.result._id,
+            },
         });
         
         socket.on("connect", () => {
             console.log("Connected to server");
         });
+        
         
         socket.on("disconnect", () => {
             

@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import logo from '../images/logo.png';
 import { Avatar } from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 import { useDispatch } from 'react-redux';
 import { useLocation, Link } from 'react-router-dom';
-import { FaChevronDown, FaSignOutAlt, FaUpload } from 'react-icons/fa';
+import { FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { disconnectSocket, connectSocket } from '../api';
 
 // Consistent styling constants matching the Chat component theme
@@ -29,16 +29,14 @@ const COLORS = {
   glass: 'rgba(255, 255, 255, 0.05)'
 };
 
-const Navbar = ({ setShowForm }) => {
+const Navbar = () => {
   const [user, setUser] = useState(() => {
     const profile = localStorage.getItem('profile');
     return profile ? JSON.parse(profile) : null;
   });
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const dropdownRef = useRef();
 
   // Token validation and user state management
   useEffect(() => {
@@ -70,18 +68,6 @@ const Navbar = ({ setShowForm }) => {
     setUser(userData);
   }, [location]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const logoutHandler = () => {
     try {
       dispatch({ type: 'LOGOUT' });
@@ -89,20 +75,10 @@ const Navbar = ({ setShowForm }) => {
       localStorage.removeItem('profile');
       setUser(null);
       disconnectSocket()
-      setDropdownOpen(false);
       navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
     }
-  };
-
-  const handleUpload = () => {
-    setShowForm(true);
-    setDropdownOpen(false);
-  };
-
-  const toggleDropdown = () => {
-    setDropdownOpen(prev => !prev);
   };
 
   return (
@@ -177,45 +153,19 @@ const Navbar = ({ setShowForm }) => {
       </Link>
 
       {/* Authentication Section */}
-      <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {user ? (
-          <div ref={dropdownRef} style={{ position: 'relative' }}>
-            {/* User Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={toggleDropdown}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                background: dropdownOpen 
-                  ? 'linear-gradient(135deg, #3b82f6, #2563eb)' 
-                  : COLORS.cardBg,
-                backdropFilter: 'blur(10px)',
-                padding: '12px 16px',
-                borderRadius: '16px',
-                cursor: 'pointer',
-                border: `1px solid ${dropdownOpen ? 'transparent' : COLORS.border}`,
-                boxShadow: dropdownOpen 
-                  ? `0 8px 25px rgba(59, 130, 246, 0.4)` 
-                  : `0 4px 20px ${COLORS.shadow}`,
-                userSelect: 'none',
-                transition: 'all 0.3s ease'
-              }}
-              aria-expanded={dropdownOpen}
-              aria-haspopup="true"
-            >
+          <>
+            {/* User Avatar and Name */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <Avatar
                   sx={{
-                    background: dropdownOpen 
-                      ? 'linear-gradient(135deg, #ffffff, #f3f4f6)' 
-                      : 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                    color: dropdownOpen ? COLORS.primary : COLORS.text,
+                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                    color: COLORS.text,
                     width: 40,
                     height: 40,
                     fontWeight: '700',
@@ -228,7 +178,7 @@ const Navbar = ({ setShowForm }) => {
                 </Avatar>
               </motion.div>
               <span style={{
-                color: dropdownOpen ? COLORS.text : COLORS.textSecondary,
+                color: COLORS.textSecondary,
                 fontWeight: '600',
                 fontSize: '15px',
                 maxWidth: '140px',
@@ -238,113 +188,38 @@ const Navbar = ({ setShowForm }) => {
               }}>
                 {user?.result?.name || 'User'}
               </span>
-              <motion.div
-                animate={{ rotate: dropdownOpen ? 180 : 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-              >
-                <FaChevronDown 
-                  size={14} 
-                  color={dropdownOpen ? COLORS.text : COLORS.primary}
-                />
-              </motion.div>
-            </motion.button>
+            </div>
 
-            {/* Dropdown Menu */}
-            <AnimatePresence>
-              {dropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    marginTop: '8px',
-                    background: COLORS.cardBg,
-                    backdropFilter: 'blur(20px)',
-                    borderRadius: '16px',
-                    border: `1px solid ${COLORS.border}`,
-                    boxShadow: `0 20px 40px ${COLORS.shadow}`,
-                    overflow: 'hidden',
-                    minWidth: '200px',
-                    zIndex: 2000
-                  }}
-                >
-                  <motion.button
-                    whileHover={{ backgroundColor: COLORS.glass }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleUpload}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '14px 16px',
-                      gap: '12px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: COLORS.text,
-                      cursor: 'pointer',
-                      border: 'none',
-                      background: 'transparent',
-                      width: '100%',
-                      textAlign: 'left',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <div style={{
-                      padding: '6px',
-                      background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
-                      <FaUpload size={12} color="white" />
-                    </div>
-                    Upload Image
-                  </motion.button>
-                  
-                  <div style={{
-                    height: '1px',
-                    background: COLORS.border,
-                    margin: '4px 0'
-                  }} />
-                  
-                  <motion.button
-                    whileHover={{ backgroundColor: COLORS.dangerLight }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={logoutHandler}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '14px 16px',
-                      gap: '12px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: COLORS.danger,
-                      cursor: 'pointer',
-                      border: 'none',
-                      background: 'transparent',
-                      width: '100%',
-                      textAlign: 'left',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <div style={{
-                      padding: '6px',
-                      background: `linear-gradient(135deg, ${COLORS.danger}, #dc2626)`,
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
-                      <FaSignOutAlt size={12} color="white" />
-                    </div>
-                    Sign Out
-                  </motion.button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+            {/* Logout Button */}
+            <motion.button
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: '0 8px 25px rgba(239, 68, 68, 0.4)'
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={logoutHandler}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: `linear-gradient(135deg, ${COLORS.danger}, #dc2626)`,
+                color: COLORS.text,
+                padding: '10px 16px',
+                borderRadius: '12px',
+                fontWeight: '600',
+                fontSize: '14px',
+                boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
+                cursor: 'pointer',
+                border: 'none',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              <FaSignOutAlt size={14} />
+              Sign Out
+            </motion.button>
+          </>
         ) : (
           <Link to="/auth" style={{ textDecoration: 'none' }}>
             <motion.button
