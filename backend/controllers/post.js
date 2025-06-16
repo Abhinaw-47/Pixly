@@ -3,9 +3,13 @@ import express from "express";
 import PostMessage from "../models/postMessage.js";
 
 export const getPosts=async(req,res)=>{
+   const {page}=req.query;
 try {
-    const post=await PostMessage.find();
-    res.status(200).json(post);
+   const LIMIT=3;
+   const startIndex=(Number(page)-1)*LIMIT;
+   const total=await PostMessage.countDocuments({});
+    const post=await PostMessage.find().sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
+    res.status(200).json({data:post,currentPage:Number(page),numberOfPages:Math.ceil(total/LIMIT)});
 } catch (error) {
     res.status(404).json({message:error.message});
     console.log(error);

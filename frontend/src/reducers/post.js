@@ -1,8 +1,11 @@
 
-export default (state={posts:[],isLoading:true},action)=>{
+export default (state={posts:[],isLoading:true,currentPage:1,numberOfPages:1},action)=>{
     switch(action.type){
         case 'FETCH_ALL':
-            return {...state,posts:action.payload};
+            return {...state,posts:action.payload.data,
+                currentPage:action.payload.currentPage,
+                numberOfPages:action.payload.numberOfPages
+            };
         case 'FETCH_BY_SEARCH':
             return {...state,posts:action.payload};
         case 'CREATE':

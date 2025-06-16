@@ -14,6 +14,8 @@
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^7.1.0",
     "@react-oauth/google": "^0.12.2",
+    "@react-three/drei": "^10.1.2",
+    "@react-three/fiber": "^9.1.2",
     "@reduxjs/toolkit": "^2.8.1",
     "axios": "^1.9.0",
     "filereader": "^0.10.3",
@@ -30,7 +32,8 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.0",
     "redux-thunk": "^3.1.0",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "three": "^0.176.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

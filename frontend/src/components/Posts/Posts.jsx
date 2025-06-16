@@ -5,6 +5,7 @@ import { FiLoader } from 'react-icons/fi';
 import { MdOutlinePostAdd, MdExplore } from 'react-icons/md';
 import { motion, AnimatePresence } from 'framer-motion';
 
+
 // Consistent styling constants
 const COLORS = {
   primary: '#3b82f6',
@@ -21,88 +22,26 @@ const Posts = ({ setCurrentId, setShowForm }) => {
   const { posts, isLoading } = useSelector((state) => state.post);
 
   // Empty State Component
-  const EmptyState = () => (
+  
+const EmptyState = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, type: 'spring', damping: 18 }}
+    className="flex flex-col items-center justify-center h-[60vh] text-center px-4"
+  >
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6, type: "spring", damping: 25 }}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '70vh',
-        textAlign: 'center',
-        padding: '40px 20px'
-      }}
+      animate={{ scale: [1, 1.1, 1] }}
+      transition={{ repeat: Infinity, duration: 2, repeatDelay: 4 }}
+      className="bg-gradient-to-br from-blue-600 to-purple-600 p-4 rounded-full mb-4 shadow-lg"
     >
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        style={{
-          background: COLORS.cardBg,
-          borderRadius: '24px',
-          padding: '48px 32px',
-          border: `1px solid ${COLORS.border}`,
-          boxShadow: `0 20px 40px ${COLORS.shadow}`,
-          backdropFilter: 'blur(20px)',
-          maxWidth: '400px',
-          width: '100%'
-        }}
-      >
-        <motion.div
-          animate={{ 
-            rotate: [0, 10, -10, 0],
-            scale: [1, 1.1, 1]
-          }}
-          transition={{ 
-            duration: 2,
-            repeat: Infinity,
-            repeatDelay: 3
-          }}
-          style={{
-            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-            borderRadius: '20px',
-            padding: '20px',
-            display: 'inline-flex',
-            marginBottom: '24px'
-          }}
-        >
-          <MdExplore size={48} color="white" />
-        </motion.div>
-        
-        <motion.h2
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          style={{
-            color: COLORS.text,
-            fontSize: '24px',
-            fontWeight: '700',
-            marginBottom: '12px',
-            margin: 0
-          }}
-        >
-          No Posts Yet
-        </motion.h2>
-        
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          style={{
-            color: COLORS.textMuted,
-            fontSize: '16px',
-            lineHeight: '1.5',
-            margin: '12px 0 0'
-          }}
-        >
-          Be the first to share something amazing with the community!
-        </motion.p>
-      </motion.div>
+      <MdExplore size={40} className="text-white" />
     </motion.div>
-  );
+
+    <h2 className="text-xl font-semibold text-white">No posts found</h2>
+    <p className="text-gray-400 mt-2 text-sm">Looks like there's nothing here yet.</p>
+  </motion.div>
+);
 
   // Loading State Component
   const LoadingState = () => (

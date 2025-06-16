@@ -7,7 +7,7 @@ import { FaSearch, FaComments, FaUpload } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getPostsBySearch } from '../actions/post';
 import { connectSocket } from '../api';
-
+import Pagination from './Pagination';
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
@@ -26,7 +26,7 @@ const Home = ({ showForm, setShowForm }) => {
   const handleSearch = () => {
     if (search.trim()) {
       dispatch(getPostsBySearch({ search }));
-      navigate(`/search?searchQuery=${search || 'none'}`);
+      navigate(`/posts/search?searchQuery=${search || 'none'}`);
     } else {
       navigate('/');
     }
@@ -146,6 +146,19 @@ const Home = ({ showForm, setShowForm }) => {
           </motion.div>
         )}
       </AnimatePresence>
+       {(!searchQuery) && (
+               <div className="max-w-2xl mx-auto -mt-8 pb-16 px-6">
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: 0.2 }}
+    className="bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 shadow-lg flex justify-center"
+  >
+    <Pagination page={page} />
+  </motion.div>
+</div>
+          )}
+      
 
       {/* Footer */}
       <motion.footer 
