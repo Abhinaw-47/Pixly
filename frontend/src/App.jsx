@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react'
-
+import { ToastContainer } from 'react-toastify';
 import './index.css'
 import Home from './components/Home'
 import Navbar from './components/Navbar'
@@ -36,6 +36,7 @@ const [showForm, setShowForm] = useState(false);
        <Route path='*' element={<NotFound />} />
      </Routes>
      </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
     </BrowserRouter>
   )
