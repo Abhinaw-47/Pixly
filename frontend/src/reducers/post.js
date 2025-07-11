@@ -16,6 +16,9 @@ export default (state={posts:[],isLoading:true,currentPage:1,numberOfPages:1},ac
             return {...state,posts:state.posts.filter((post)=>post._id!==action.payload)};
         case 'LIKE':
             return {...state,posts:state.posts.map((post)=>post._id===action.payload._id?action.payload:post)};
+
+        case 'FETCH_PROFILE':
+            return {...state,posts:action.payload.data};
         case 'START_LOADING':
             return {...state,isLoading:true};
         case 'END_LOADING':

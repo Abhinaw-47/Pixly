@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import express from "express";
 import PostMessage from "../models/postMessage.js";
 
+
 export const getPosts=async(req,res)=>{
    const {page}=req.query;
 try {
@@ -10,6 +11,9 @@ try {
    const total=await PostMessage.countDocuments({});
     const post=await PostMessage.find().sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
     res.status(200).json({data:post,currentPage:Number(page),numberOfPages:Math.ceil(total/LIMIT)});
+   //     const post=await PostMessage.find().sort({ _id: -1 })
+    
+   //  res.status(200).json({data:post,currentPage:1,numberOfPages:1});
 } catch (error) {
     res.status(404).json({message:error.message});
     console.log(error);
@@ -32,6 +36,17 @@ export const getPostBySearch=async(req,res)=>{
    
       res.json({data:posts});
       
+   } catch (error) {
+      res.status(404).json({message:error.message});
+   }
+}
+export const getProfile=async(req,res)=>{
+  const {profile}=req.params;
+   
+   try {
+      const posts=await PostMessage.find({creator:profile});
+    
+      res.json({data:posts});
    } catch (error) {
       res.status(404).json({message:error.message});
    }

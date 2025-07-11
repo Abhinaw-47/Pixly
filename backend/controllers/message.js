@@ -3,8 +3,9 @@ import User from "../models/user.js";
 import { getReceiverSocketId, io } from "../socket.js";
 
 export const getUsers=async(req,res)=>{
-   
+   console.log(req.userId,"undefined is userId");
 try {
+    console.log("here")
     const loggedUser=req.userId;
     const users=await User.find({_id:{$ne:loggedUser}});
     res.status(200).json(users);

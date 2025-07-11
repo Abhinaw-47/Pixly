@@ -4,8 +4,11 @@ import * as api from "../api";
 
 export const fetchUsers=()=>async(dispatch)=>{
     try {
+        console.log("fetching users");
         dispatch({type:'START_USERS_LOADING'});
+        console.log("fetching users  123");
         const {data}=await api.fetchUsers();
+        console.log("data has been fetched");
         dispatch({type:'FETCH_ALL_USERS',payload:data});
         dispatch({type:'END_USERS_LOADING'});
     } catch (error) {

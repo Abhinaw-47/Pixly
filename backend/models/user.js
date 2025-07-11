@@ -15,6 +15,14 @@ const userSchema=mongoose.Schema({
     googleId:{
         type:String
     }
+    // isVerified:{
+    //     type:Boolean,
+    //     default:false
+    // },
+    // resetPasswordToken:String,
+    // resetPasswordExpire:Date,
+    // verificationToken:String,
+    // verificationTokenExpire:Date,
 
 })
 const User=mongoose.model("User",userSchema)

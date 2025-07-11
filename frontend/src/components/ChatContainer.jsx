@@ -1,712 +1,637 @@
-// import React, { useEffect } from 'react';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { getMessages } from '../actions/message';
-// import ChatInput from './ChatInput';
-// import { motion, AnimatePresence } from 'framer-motion';
-// import { FaUserCircle, FaTimes, FaPhone, FaVideo, FaEllipsisV, FaPaperPlane, FaHeart } from 'react-icons/fa';
-// import { connectSocket, getSocket } from '../api';
-
-// import { useCallback } from 'react';
-// const ChatContainer = () => {
-//   const dispatch = useDispatch();
-//   const { isMsgLoading, selectedUser, messages} = useSelector((state) => state.message);
-//   const {onlineUsers} = useSelector((state) => state.auth);
-//   //  const subscribeTomessages=()=>{
-//   //   if(!selectedUser) return;
-//   //   const socket=connectSocket();
-//   //   socket.on("getMessage", (messages) => {
-//   //     dispatch({ type: "SEND_MESSAGE", payload: messages });
-//   //   })
-//   //  }
-//    const subscribeToMessages = useCallback(() => {
-//     if (!selectedUser) return;
-//     const socket = connectSocket();
-//     console.log("before subscribe")
-//     socket.off("receiveMessage"); // clear any previous
-//     socket.on("receiveMessage", (message) => {
-//       console.log("Subscribed")
-//       dispatch({ type: "SEND_MESSAGE", payload: message });
-//     });
-//   }, [selectedUser, dispatch]);
-//   //  const unsubscribeTomessages=()=>{
-//   //   if(!selectedUser) return;
-//   //   const socket=connectSocket();
-//   //   socket.off("getMessage");
-//   //  }
-
-//   const unsubscribeFromMessages = useCallback(() => {
-//     const socket = getSocket();
-//     if (!socket || !selectedUser) return;
-//     socket.off("receiveMessage");
-//   }, [selectedUser]);
-
-//   useEffect(() => {
-//     if (selectedUser !== null) {
-//       dispatch(getMessages(selectedUser._id));
-//       subscribeToMessages();
-//     }
-    
-
-//     return () => {
-//       console.log("Unsubscribed")
-//       unsubscribeFromMessages();
-//     };
-
-    
-//   }, [selectedUser, dispatch,subscribeToMessages,unsubscribeFromMessages]);
-
-//   // Helper function to format time
-//   const formatTime = (timestamp) => {
-//     const date = new Date(timestamp);
-//     return date.toLocaleTimeString('en-US', { 
-//       hour: 'numeric', 
-//       minute: '2-digit', 
-//       hour12: true 
-//     });
-//   };
-
-//   // Helper function to format date
-//   const formatDate = (timestamp) => {
-//     const date = new Date(timestamp);
-//     const today = new Date();
-//     const yesterday = new Date(today);
-//     yesterday.setDate(yesterday.getDate() - 1);
-
-//     if (date.toDateString() === today.toDateString()) {
-//       return 'Today';
-//     } else if (date.toDateString() === yesterday.toDateString()) {
-//       return 'Yesterday';
-//     } else {
-//       return date.toLocaleDateString('en-US', { 
-//         weekday: 'long', 
-//         year: 'numeric', 
-//         month: 'long', 
-//         day: 'numeric' 
-//       });
-//     }
-//   };
-
-//   // Helper function to check if we need a date separator
-//   const needsDateSeparator = (currentMessage, previousMessage) => {
-//     if (!previousMessage) return true;
-    
-//     const currentDate = new Date(currentMessage.createdAt || currentMessage.timestamp || Date.now());
-//     const previousDate = new Date(previousMessage.createdAt || previousMessage.timestamp || Date.now());
-    
-//     return currentDate.toDateString() !== previousDate.toDateString();
-//   };
-
-//   // Group messages by date and add separators
-//   const getMessagesWithDateSeparators = () => {
-//     if (!messages || messages.length === 0) return [];
-    
-//     const messagesWithSeparators = [];
-    
-//     messages.forEach((message, index) => {
-//       const previousMessage = index > 0 ? messages[index - 1] : null;
-      
-//       if (needsDateSeparator(message, previousMessage)) {
-//         messagesWithSeparators.push({
-//           type: 'date-separator',
-//           date: message.createdAt || message.timestamp || Date.now(),
-//           id: `date-${index}`
-//         });
-//       }
-      
-//       messagesWithSeparators.push({
-//         ...message,
-//         type: 'message'
-//       });
-//     });
-    
-//     return messagesWithSeparators;
-//   };
-
-//   if (selectedUser === null) {
-//     return (
-//       <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-900/50 to-gray-800/50">
-//         <motion.div
-//           initial={{ opacity: 0, y: 20 }}
-//           animate={{ opacity: 1, y: 0 }}
-//           className="text-center p-8 max-w-md"
-//         >
-//           <motion.div
-//             animate={{ 
-//               rotate: [0, 10, -10, 0],
-//               scale: [1, 1.1, 1]
-//             }}
-//             transition={{ 
-//               duration: 2,
-//               repeat: Infinity,
-//               repeatDelay: 3
-//             }}
-//             className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6"
-//           >
-//             <FaPaperPlane className="text-white text-3xl" />
-//           </motion.div>
-//           <h3 className="text-2xl font-bold text-white mb-3">Start a Conversation</h3>
-//           <p className="text-gray-400 leading-relaxed">
-//             Select a friend from the sidebar to begin chatting and sharing memorable moments together.
-//           </p>
-//           <motion.div
-//             initial={{ width: 0 }}
-//             animate={{ width: '100%' }}
-//             transition={{ duration: 1, delay: 0.5 }}
-//             className="h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-6"
-//           />
-//         </motion.div>
-//       </div>
-//     );
-//   }
-
-//   if (isMsgLoading) {
-//     return (
-//       <div className="flex items-center justify-center h-full">
-//         <motion.div
-//           initial={{ opacity: 0 }}
-//           animate={{ opacity: 1 }}
-//           className="text-center"
-//         >
-//           <div className="flex space-x-2 mb-4">
-//             {[0, 1, 2].map((i) => (
-//               <motion.div
-//                 key={i}
-//                 animate={{
-//                   y: [0, -20, 0],
-//                 }}
-//                 transition={{
-//                   duration: 0.6,
-//                   repeat: Infinity,
-//                   delay: i * 0.2,
-//                 }}
-//                 className="w-3 h-3 bg-blue-500 rounded-full"
-//               />
-//             ))}
-//           </div>
-//           <p className="text-white">Loading messages...</p>
-//         </motion.div>
-//       </div>
-//     );
-//   }
-
-//   const messagesWithSeparators = getMessagesWithDateSeparators();
-//  const isVideo = messages.image?.startsWith("data:video");
-//   return (
-//     <div className="flex flex-col h-full">
-//       {/* Chat Header */}
-//       <motion.div
-//         initial={{ opacity: 0, y: -20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         className="flex items-center justify-between p-6 bg-gradient-to-r from-gray-800 to-gray-700 border-b border-gray-700/50"
-//       >
-//         <div className="flex items-center gap-4">
-//           <div className="relative">
-//             <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-//               <FaUserCircle size={28} className="text-white" />
-//             </div>
-//             <motion.div
-//               animate={{
-//                 scale: onlineUsers.includes(selectedUser._id) ? [1, 1.2, 1] : 1,
-//               }}
-//               transition={{ duration: 0.3 }}
-//               className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-700 ${
-//                 onlineUsers.includes(selectedUser._id) ? 'bg-green-500' : 'bg-gray-500'
-//               }`}
-//             />
-//           </div>
-//           <div>
-//             <h3 className="text-lg font-bold text-white">{selectedUser.name}</h3>
-//             <motion.p
-//               animate={{ opacity: [0.5, 1, 0.5] }}
-//               transition={{ duration: 2, repeat: Infinity }}
-//               className={`text-sm ${
-//                 onlineUsers.includes(selectedUser._id) ? 'text-green-400' : 'text-gray-400'
-//               }`}
-//             >
-//               {onlineUsers.includes(selectedUser._id) ? 'Active now' : 'Offline'}
-//             </motion.p>
-//           </div>
-//         </div>
-
-//         <div className="flex items-center gap-3">
-//           <motion.button
-//             whileHover={{ scale: 1.1 }}
-//             whileTap={{ scale: 0.9 }}
-//             onClick={() => dispatch({ type: 'SELECT_USER', payload: null })}
-//             className="p-2 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors"
-//             title="Close Chat"
-//           >
-//             <FaTimes className="text-red-400 hover:text-red-300" size={16} />
-//           </motion.button>
-//         </div>
-//       </motion.div>
-
-//       {/* Messages Area */}
-//       <div className="flex flex-col h-full">
-//       <div className="flex-grow overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-900/30 to-gray-900/50">
-//         <AnimatePresence>
-//           {messagesWithSeparators.map((item, index) => {
-//             if (item.type === 'date-separator') {
-//               return (
-//                 <motion.div key={item.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-//                   <div className="text-gray-400 text-sm font-semibold my-4">{formatDate(item.date)}</div>
-//                 </motion.div>
-//               );
-//             }
-
-//             const isVideo = item.image && item.image.startsWith("data:video");
-
-//             return (
-//               <motion.div
-//                 key={item._id}
-//                 initial={{ opacity: 0, y: 20 }}
-//                 animate={{ opacity: 1, y: 0 }}
-//                 className={`flex ${item.senderId === selectedUser._id ? 'justify-start' : 'justify-end'}`}
-//               >
-//                 <div className="max-w-xs lg:max-w-md">
-//                   {item.image ? (
-//                     <motion.div whileHover={{ scale: 1.02 }} className="relative overflow-hidden rounded-2xl shadow-xl">
-//                       {isVideo ? (
-//                         <video
-//                           src={item.image}
-//                           controls
-//                           className="w-full h-auto rounded-2xl"
-//                         />
-//                       ) : (
-//                         <img
-//                           src={item.image}
-//                           alt="Sent content"
-//                           className="w-full h-auto rounded-2xl"
-//                         />
-//                       )}
-//                       <div className="absolute bottom-2 right-2 bg-black/50 px-2 py-1 rounded-md">
-//                         <span className="text-white text-xs">{formatTime(item.createdAt)}</span>
-//                       </div>
-//                     </motion.div>
-//                   ) : (
-//                     <motion.div
-//                       whileHover={{ scale: 1.02 }}
-//                       className={`relative p-4 rounded-2xl shadow-lg backdrop-blur-sm ${
-//                         item.senderId === selectedUser._id
-//                           ? 'bg-gray-700/80 text-white'
-//                           : 'bg-gradient-to-r from-blue-600 to-blue-500 text-white'
-//                       }`}
-//                     >
-//                       <p className="break-words leading-relaxed mb-1">{item.text}</p>
-//                       <div className="flex justify-end text-xs opacity-70 mt-2">
-//                         {formatTime(item.createdAt)}
-//                       </div>
-//                     </motion.div>
-//                   )}
-//                 </div>
-//               </motion.div>
-//             );
-//           })}
-//         </AnimatePresence>
-//       </div>
-   
-
-//       {/* Chat Input */}
-//       <motion.div
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ delay: 0.3 }}
-//       >
-//         <ChatInput />
-//       </motion.div>
-//     </div>
-//   </div>
-//   );
-// };
-
-// export default ChatContainer;
-
-
-
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMessages } from '../actions/message';
 import ChatInput from './ChatInput';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaUserCircle, FaTimes, FaPhone, FaVideo, FaEllipsisV, FaPaperPlane, FaHeart } from 'react-icons/fa';
+import {
+  Box,
+  Paper,
+  Typography,
+  CircularProgress,
+  Avatar,
+  useMediaQuery,
+  IconButton,
+  Fade,
+  Slide,
+  Zoom,
+  Badge,
+} from '@mui/material';
+import { FaUserCircle, FaPaperPlane, FaTimes, FaArrowLeft, FaCheckDouble, FaCheck } from 'react-icons/fa';
+import { MdOnlinePrediction, MdVideoCall, MdCall, MdMoreVert } from 'react-icons/md';
+import { keyframes } from '@mui/system';
 import { connectSocket, getSocket } from '../api';
 
-import { useCallback } from 'react';
+
+const messageSlideIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`;
+
+const typingIndicator = keyframes`
+  0%, 60%, 100% { transform: scale(1); opacity: 0.7; }
+  30% { transform: scale(1.2); opacity: 1; }
+`;
+
+const pulseOnline = keyframes`
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  50% { 
+    transform: scale(1.1); 
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+`;
+
+const floatMessage = keyframes`
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-2px); }
+`;
+
+const shimmerLoad = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+`;
+
 const ChatContainer = () => {
   const dispatch = useDispatch();
-  const { isMsgLoading, selectedUser, messages} = useSelector((state) => state.message);
-  const {onlineUsers} = useSelector((state) => state.auth);
-  //  const subscribeTomessages=()=>{
-  //   if(!selectedUser) return;
-  //   const socket=connectSocket();
-  //   socket.on("getMessage", (messages) => {
-  //     dispatch({ type: "SEND_MESSAGE", payload: messages });
-  //   })
-  //  }
-   const subscribeToMessages = useCallback(() => {
+  const { isMsgLoading, selectedUser, messages } = useSelector((s) => s.message);
+  const { onlineUsers } = useSelector((state) => state.auth);
+  const isSmallScreen = useMediaQuery('(max-width:600px)');
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+
+  const subscribe = useCallback(() => {
     if (!selectedUser) return;
     const socket = connectSocket();
-    console.log("before subscribe")
-    socket.off("receiveMessage"); // clear any previous
-    socket.on("receiveMessage", (message) => {
-      console.log("Subscribed")
-      dispatch({ type: "SEND_MESSAGE", payload: message });
-    });
+    socket.off('receiveMessage');
+    socket.on('receiveMessage', (msg) =>
+      dispatch({ type: 'SEND_MESSAGE', payload: msg })
+    );
   }, [selectedUser, dispatch]);
-  //  const unsubscribeTomessages=()=>{
-  //   if(!selectedUser) return;
-  //   const socket=connectSocket();
-  //   socket.off("getMessage");
-  //  }
 
-  const unsubscribeFromMessages = useCallback(() => {
+  const unsubscribe = useCallback(() => {
     const socket = getSocket();
-    if (!socket || !selectedUser) return;
-    socket.off("receiveMessage");
-  }, [selectedUser]);
+    if (socket) socket.off('receiveMessage');
+  }, []);
 
   useEffect(() => {
-    if (selectedUser !== null) {
+    if (selectedUser) {
       dispatch(getMessages(selectedUser._id));
-      subscribeToMessages();
+      subscribe();
     }
-    
+    return unsubscribe;
+  }, [selectedUser, dispatch, subscribe, unsubscribe]);
 
-    return () => {
-      console.log("Unsubscribed")
-      unsubscribeFromMessages();
-    };
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    
-  }, [selectedUser, dispatch,subscribeToMessages,unsubscribeFromMessages]);
+  const fmtTime = (t) =>
+    new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // Helper function to format time
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit', 
-      hour12: true 
-    });
+  const fmtDate = (t) => {
+    const d = new Date(t),
+      td = new Date(),
+      yd = new Date(td.setDate(td.getDate() - 1));
+    if (d.toDateString() === new Date().toDateString()) return 'Today';
+    if (d.toDateString() === yd.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   };
 
-  // Helper function to format date
-  const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
+  const withSeps = (messages || []).reduce((acc, m, i, arr) => {
+    const prev = arr[i - 1];
+    if (!i || new Date(prev.createdAt).toDateString() !== new Date(m.createdAt).toDateString()) {
+      acc.push({ type: 'sep', date: m.createdAt, id: `sep-${i}` });
     }
-  };
+    acc.push({ ...m, type: 'msg', id: m._id });
+    return acc;
+  }, []);
 
-  // Helper function to check if we need a date separator
-  const needsDateSeparator = (currentMessage, previousMessage) => {
-    if (!previousMessage) return true;
-    
-    const currentDate = new Date(currentMessage.createdAt || currentMessage.timestamp || Date.now());
-    const previousDate = new Date(previousMessage.createdAt || previousMessage.timestamp || Date.now());
-    
-    return currentDate.toDateString() !== previousDate.toDateString();
-  };
-
-  // Group messages by date and add separators
-  const getMessagesWithDateSeparators = () => {
-    if (!messages || messages.length === 0) return [];
-    
-    const messagesWithSeparators = [];
-    
-    messages.forEach((message, index) => {
-      const previousMessage = index > 0 ? messages[index - 1] : null;
-      
-      if (needsDateSeparator(message, previousMessage)) {
-        messagesWithSeparators.push({
-          type: 'date-separator',
-          date: message.createdAt || message.timestamp || Date.now(),
-          id: `date-${index}`
-        });
-      }
-      
-      messagesWithSeparators.push({
-        ...message,
-        type: 'message'
-      });
-    });
-    
-    return messagesWithSeparators;
-  };
-
-  if (selectedUser === null) {
+  if (!selectedUser) {
     return (
-      <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-900/50 to-gray-800/50">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center p-8 max-w-md"
+      <Fade in timeout={800}>
+        <Box 
+          flex={1} 
+          display="flex" 
+          alignItems="center" 
+          justifyContent="center"
+          sx={{ 
+            background: `
+              radial-gradient(circle at center, rgba(139, 92, 246, 0.1), transparent 70%),
+              linear-gradient(135deg, rgba(0,0,0,0.8), rgba(42, 0, 63, 0.6))
+            `,
+            height: '100vh',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
         >
-          <motion.div
-            animate={{ 
-              rotate: [0, 10, -10, 0],
-              scale: [1, 1.1, 1]
+        
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              overflow: 'hidden',
+              pointerEvents: 'none',
             }}
-            transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              repeatDelay: 3
-            }}
-            className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6"
           >
-            <FaPaperPlane className="text-white text-3xl" />
-          </motion.div>
-          <h3 className="text-2xl font-bold text-white mb-3">Start a Conversation</h3>
-          <p className="text-gray-400 leading-relaxed">
-            Select a friend from the sidebar to begin chatting and sharing memorable moments together.
-          </p>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: '100%' }}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-6"
-          />
-        </motion.div>
-      </div>
+            {[...Array(20)].map((_, i) => (
+              <Box
+                key={i}
+                sx={{
+                  position: 'absolute',
+                  width: '4px',
+                  height: '4px',
+                  background: `rgba(139, 92, 246, ${0.3 + Math.random() * 0.4})`,
+                  borderRadius: '50%',
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  animation: `${floatMessage} ${3 + i * 0.2}s ease-in-out infinite`,
+                  animationDelay: `${i * 0.1}s`,
+                }}
+              />
+            ))}
+          </Box>
+
+          <Paper 
+            elevation={0} 
+            sx={{
+              p: 6, 
+              textAlign: 'center', 
+              borderRadius: '30px',
+              background: 'rgba(255, 255, 255, 0.1)', 
+              backdropFilter: 'blur(25px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              maxWidth: 400,
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: '-100%',
+                width: '100%',
+                height: '100%',
+                background: `
+                  linear-gradient(
+                    90deg, 
+                    transparent, 
+                    rgba(255, 255, 255, 0.1), 
+                    transparent
+                  )
+                `,
+                animation: `${shimmerLoad} 3s ease-in-out infinite`,
+              },
+            }}
+          >
+            <Zoom in timeout={1000} style={{ transitionDelay: '300ms' }}>
+              <Avatar
+                sx={{
+                  width: 80,
+                  height: 80,
+                  mx: 'auto',
+                  mb: 3,
+                  background: 'linear-gradient(45deg, #8b5cf6, #3b82f6)',
+                  animation: `${floatMessage} 4s ease-in-out infinite`,
+                }}
+              >
+                <FaPaperPlane size={32} />
+              </Avatar>
+            </Zoom>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                color: 'white',
+                fontWeight: 700,
+                mb: 2,
+                background: 'linear-gradient(45deg, #ffffff, #e0e0ff)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              Start Chatting
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: 'rgba(255, 255, 255, 0.7)',
+                lineHeight: 1.6,
+              }}
+            >
+              Select a friend from the sidebar to begin your conversation
+            </Typography>
+          </Paper>
+        </Box>
+      </Fade>
     );
   }
 
   if (isMsgLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
+      <Fade in={isMsgLoading} timeout={500}>
+        <Box 
+          flex={1} 
+          display="flex" 
+          alignItems="center" 
+          justifyContent="center"
+          sx={{ 
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.8), rgba(42, 0, 63, 0.6))',
+            height: '100vh',
+          }}
         >
-          <div className="flex space-x-2 mb-4">
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                animate={{
-                  y: [0, -20, 0],
-                }}
-                transition={{
-                  duration: 0.6,
-                  repeat: Infinity,
-                  delay: i * 0.2,
-                }}
-                className="w-3 h-3 bg-blue-500 rounded-full"
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: '20px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(20px)',
+              textAlign: 'center',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+            }}
+          >
+            <Box sx={{ position: 'relative', display: 'inline-flex', mb: 2 }}>
+              <CircularProgress 
+                size={50}
+                thickness={3}
+                sx={{ color: '#8b5cf6' }}
               />
-            ))}
-          </div>
-          <p className="text-white">Loading messages...</p>
-        </motion.div>
-      </div>
+            </Box>
+            <Typography variant="h6" sx={{ color: 'white', fontWeight: 600 }}>
+              Loading Messages...
+            </Typography>
+          </Paper>
+        </Box>
+      </Fade>
     );
   }
 
-  const messagesWithSeparators = getMessagesWithDateSeparators();
+  const isOnline = onlineUsers.includes(selectedUser._id);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Chat Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between p-6 bg-gradient-to-r from-gray-800 to-gray-700 border-b border-gray-700/50"
-      >
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-              <FaUserCircle size={28} className="text-white" />
-            </div>
-            <motion.div
-              animate={{
-                scale: onlineUsers.includes(selectedUser._id) ? [1, 1.2, 1] : 1,
-              }}
-              transition={{ duration: 0.3 }}
-              className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-700 ${
-                onlineUsers.includes(selectedUser._id) ? 'bg-green-500' : 'bg-gray-500'
-              }`}
-            />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-white">{selectedUser.name}</h3>
-            <motion.p
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className={`text-sm ${
-                onlineUsers.includes(selectedUser._id) ? 'text-green-400' : 'text-gray-400'
-              }`}
-            >
-              {onlineUsers.includes(selectedUser._id) ? 'Active now' : 'Offline'}
-            </motion.p>
-          </div>
-        </div>
+    <Box
+      display="flex"
+      flexDirection="column"
+      height="100vh"
+      sx={{
+        background: `
+          radial-gradient(circle at 30% 40%, rgba(139, 92, 246, 0.1), transparent 50%),
+          radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.1), transparent 50%),
+          linear-gradient(135deg, rgba(0,0,0,0.9), rgba(42, 0, 63, 0.8))
+        `,
+        color: 'white',
+      }}
+    >
+    
+    
+      <Slide direction="down" in timeout={600}>
+        <Paper
+          elevation={0}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            px: 3,
+            py: 2,
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            borderRadius: 0,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: '-100%',
+              width: '100%',
+              height: '100%',
+              background: `
+                linear-gradient(
+                  90deg, 
+                  transparent, 
+                  rgba(255, 255, 255, 0.05), 
+                  transparent
+                )
+              `,
+              animation: `${shimmerLoad} 4s ease-in-out infinite`,
+            },
+          }}
+        >
+          <Box display="flex" alignItems="center">
+          
+            {isSmallScreen && (
+              <IconButton
+                onClick={() => dispatch({ type: 'SELECT_USER', payload: null })}
+                sx={{
+                  mr: 2,
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    transform: 'scale(1.1)',
+                  },
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                <FaArrowLeft size={18} />
+              </IconButton>
+            )}
 
-        <div className="flex items-center gap-3">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => dispatch({ type: 'SELECT_USER', payload: null })}
-            className="p-2 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors"
-            title="Close Chat"
-          >
-            <FaTimes className="text-red-400 hover:text-red-300" size={16} />
-          </motion.button>
-        </div>
-      </motion.div>
-
-      {/* Messages Area */}
-      <div
-        className="flex-grow overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-900/30 to-gray-900/50"
-        style={{ maxHeight: 'calc(100vh - 220px)' }}
-      >
-        <AnimatePresence>
-          {messagesWithSeparators.length > 0 ? (
-            messagesWithSeparators.map((item, index) => {
-              if (item.type === 'date-separator') {
-                return (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex justify-center my-6"
-                  >
-                    <div className="bg-gray-700/60 backdrop-blur-sm px-4 py-2 rounded-full">
-                      <span className="text-gray-300 text-sm font-medium">
-                        {formatDate(item.date)}
-                      </span>
-                    </div>
-                  </motion.div>
-                );
+            <Badge
+              overlap="circular"
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              badgeContent={
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    bgcolor: isOnline ? '#22c55e' : '#6b7280',
+                    border: '3px solid rgba(0,0,0,0.8)',
+                    animation: isOnline ? `${pulseOnline} 2s infinite` : 'none',
+                  }}
+                />
               }
-
-              const message = item;
-              const isVideo = item.image && item.image.startsWith("data:video");
-              return (
-                <motion.div
-                  key={message._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: index * 0.02 }}
-                  className={`flex ${message.senderId === selectedUser._id ? 'justify-start' : 'justify-end'} group`}
-                >
-                  <div className={`max-w-xs lg:max-w-md ${message.senderId === selectedUser._id ? 'order-2' : 'order-1'}`}>
-                    {message.image ? (
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        className="relative overflow-hidden rounded-2xl shadow-xl"
-                      >
-                         {isVideo ? (
-                        <video
-                          src={item.image}
-                          controls
-                          className="w-full h-auto rounded-2xl"
-                        />
-                      ) : (
-                        <img
-                          src={item.image}
-                          alt="Sent content"
-                          className="w-full h-auto rounded-2xl"
-                        />
-                      )}
-                        <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-md">
-                          <span className="text-white text-xs">
-                            {formatTime(message.createdAt || message.timestamp || Date.now())}
-                          </span>
-                        </div>
-                        <div className="absolute duration-200 pointer-events-none" />
-
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        className={`relative p-4 rounded-2xl shadow-lg backdrop-blur-sm ${
-                          message.senderId === selectedUser._id 
-                            ? 'bg-gray-700/80 text-white rounded-bl-md' 
-                            : 'bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-br-md'
-                        }`}
-                      >
-                        <p className="break-words leading-relaxed mb-1">{message.text}</p>
-                        <div className="flex items-center justify-end gap-1 mt-2">
-                          <span className="text-xs opacity-70">
-                            {formatTime(message.createdAt || message.timestamp || Date.now())}
-                          </span>
-                          {message.senderId !== selectedUser._id && (
-                            <div className="opacity-60">
-                              {/* Read status indicators can be added here */}
-                              <svg width="16" height="16" viewBox="0 0 16 16" className="text-white">
-                                <path
-                                  fill="currentColor"
-                                  d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l2.541 2.434c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.512z"
-                                />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        <div className={`absolute bottom-1 ${
-                          message.senderId === selectedUser._id ? 'left-1' : 'right-1'
-                        } opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
-                          <FaHeart className="text-xs opacity-50" />
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center justify-center h-full"
             >
-              <div className="text-center p-8">
-                <motion.div
-                  animate={{ 
-                    rotate: [0, 5, -5, 0],
-                    scale: [1, 1.05, 1]
-                  }}
-                  transition={{ 
-                    duration: 3,
-                    repeat: Infinity,
-                    repeatType: 'reverse'
-                  }}
-                  className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                >
-                  <FaPaperPlane className="text-blue-400 text-2xl" />
-                </motion.div>
-                <h4 className="text-lg font-semibold text-white mb-2">No messages yet</h4>
-                <p className="text-gray-400">Send a message to start the conversation!</p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              <Avatar
+                sx={{
+                  mr: 2,
+                  width: 50,
+                  height: 50,
+                  background: 'linear-gradient(45deg, #6366f1, #8b5cf6)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.1)',
+                  },
+                }}
+              >
+                <FaUserCircle size={26} />
+              </Avatar>
+            </Badge>
 
-      {/* Chat Input */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+            <Box>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  color: '#fff', 
+                  fontWeight: 700,
+                  fontSize: '1.1rem',
+                }}
+              >
+                {selectedUser.name}
+              </Typography>
+              <Box display="flex" alignItems="center" gap={0.5}>
+                {isOnline && <MdOnlinePrediction size={14} color="#22c55e" />}
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: isOnline ? '#22c55e' : 'rgba(255, 255, 255, 0.6)',
+                    fontWeight: 500,
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  {isOnline ? 'Active now' : 'Offline'}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+       
+        </Paper>
+      </Slide>
+
+    
+      <Box
+        ref={messagesContainerRef}
+        flex={1}
+        sx={{
+          overflow: 'auto',
+          px: 2,
+          py: 2,
+          background: 'rgba(0,0,0,0.2)',
+          backdropFilter: 'blur(10px)',
+          position: 'relative',
+          '&::-webkit-scrollbar': {
+            width: '6px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '10px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'linear-gradient(45deg, #8b5cf6, #3b82f6)',
+            borderRadius: '10px',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #7c3aed, #2563eb)',
+            },
+          },
+        }}
       >
-        <ChatInput />
-      </motion.div>
-    </div>
+        {withSeps.length === 0 ? (
+          <Fade in timeout={800}>
+            <Box
+              height="100%"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              flexDirection="column"
+            >
+              <Avatar
+                sx={{
+                  width: 80,
+                  height: 80,
+                  mb: 3,
+                  background: 'linear-gradient(45deg, #8b5cf6, #3b82f6)',
+                  animation: `${floatMessage} 4s ease-in-out infinite`,
+                }}
+              >
+                <FaPaperPlane size={32} />
+              </Avatar>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  fontWeight: 600,
+                  mb: 1,
+                }}
+              >
+                No messages yet
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  textAlign: 'center',
+                }}
+              >
+                Start the conversation with {selectedUser.name}
+              </Typography>
+            </Box>
+          </Fade>
+        ) : (
+          <Box>
+            {withSeps.map(({ type, date, ...msg }, index) =>
+              type === 'sep' ? (
+                <Fade key={msg.id} in timeout={500} style={{ transitionDelay: `${index * 50}ms` }}>
+                  <Box textAlign="center" my={3}>
+                    <Paper 
+                      elevation={0} 
+                      sx={{
+                        display: 'inline-block', 
+                        px: 3, 
+                        py: 1, 
+                        borderRadius: '20px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                      }}
+                    >
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {fmtDate(date)}
+                      </Typography>
+                    </Paper>
+                  </Box>
+                </Fade>
+              ) : (
+                <Slide 
+                  key={msg._id} 
+                  direction={msg.senderId === selectedUser._id ? 'right' : 'left'} 
+                  in 
+                  timeout={400}
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
+                  <Box 
+                    display="flex"
+                    justifyContent={msg.senderId === selectedUser._id ? 'flex-start' : 'flex-end'} 
+                    mb={2}
+                    sx={{
+                      animation: `${messageSlideIn} 0.5s ease-out`,
+                    }}
+                  >
+                    <Paper 
+                      sx={{
+                        p: 2, 
+                        borderRadius: msg.senderId === selectedUser._id ? '20px 20px 20px 5px' : '20px 20px 5px 20px',
+                        maxWidth: '70%',
+                        background: msg.senderId === selectedUser._id
+                          ? 'rgba(255, 255, 255, 0.15)'
+                          : 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        position: 'relative',
+                        transition: 'all 0.3s ease',
+                        animation: `${floatMessage} 6s ease-in-out infinite`,
+                        animationDelay: `${index * 0.5}s`,
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: msg.senderId === selectedUser._id
+                            ? '0 8px 25px rgba(255, 255, 255, 0.2)'
+                            : '0 8px 25px rgba(59, 130, 246, 0.4)',
+                        },
+                      }}
+                    >
+                      {msg.image ? (
+                        <Box>
+                          {msg.image.startsWith("data:video") ? (
+                            <video
+                              src={msg.image}
+                              controls
+                              style={{ 
+                                width: '100%', 
+                                maxWidth: '300px',
+                                borderRadius: 12,
+                                marginBottom: 8,
+                              }}
+                            />
+                          ) : (
+                            <img
+                              src={msg.image}
+                              alt="sent"
+                              style={{ 
+                                width: '100%', 
+                                maxWidth: '300px',
+                                borderRadius: 12,
+                                marginBottom: 8,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      ) : (
+                        <Typography 
+                          sx={{ 
+                            color: 'white',
+                            fontSize: '0.95rem',
+                            lineHeight: 1.4,
+                            wordBreak: 'break-word',
+                          }}
+                        >
+                          {msg.text}
+                        </Typography>
+                      )}
+                      
+                      <Box 
+                        display="flex" 
+                        justifyContent="space-between" 
+                        alignItems="center"
+                        mt={1}
+                      >
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            color: 'rgba(255,255,255,0.7)',
+                            fontSize: '0.75rem',
+                          }}
+                        >
+                          {fmtTime(msg.createdAt)}
+                        </Typography>
+                        
+                        {msg.senderId !== selectedUser._id && (
+                          <Box sx={{ ml: 1 }}>
+                            <FaCheckDouble size={12} color="rgba(255,255,255,0.6)" />
+                          </Box>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Box>
+                </Slide>
+              )
+            )}
+            <div ref={messagesEndRef} />
+          </Box>
+        )}
+      </Box>
+
+     
+      <Slide direction="up" in timeout={600} style={{ transitionDelay: '300ms' }}>
+        <Box 
+          sx={{ 
+            borderTop: '1px solid rgba(255,255,255,0.15)',
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(20px)',
+          }}
+        >
+          <ChatInput />
+        </Box>
+      </Slide>
+    </Box>
   );
 };
 
