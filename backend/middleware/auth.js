@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
-
+import dotenv from "dotenv";
+dotenv.config();
 
 
 export default (req, res, next) => {
@@ -12,7 +13,7 @@ export default (req, res, next) => {
   let decodedData;
 
   if (token && isCustomAuth) {
-    decodedData = jwt.verify(token, "test");
+    decodedData = jwt.verify(token,process.env.JWT_AcessSecret);
     req.userId = decodedData?.id;
   }
   else{
@@ -23,7 +24,11 @@ export default (req, res, next) => {
     next();
         
     } catch (error) {
-        res.status(500).json({message:error.message})
+        // res.status(500).json({message:error.message})
+                   if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Access token expired" });
+    }
+    return res.status(403).json({ message: "Invalid token", error: error.message });
     }
    
 }

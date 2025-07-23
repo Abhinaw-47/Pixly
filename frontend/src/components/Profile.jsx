@@ -477,39 +477,49 @@ const Profile = () => {
       dispatch(getProfile({ profile: profile }));
     }
     
-    // Fetch users
-    const socket = connectSocket();
-    if (socket) {
-      socket.on('getOnlineUsers', (UserIds) => {
-        dispatch({ type: 'SET_ONLINE_USERS', payload: UserIds });
-      });
-      dispatch(fetchUsers());
+    // Fetch users only if logged in, as this is where the original problem stems from.
+    // Anonymous users won't have the full `users` list.
+    if (currentUser) {
+      const socket = connectSocket();
+      if (socket) {
+        socket.on('getOnlineUsers', (UserIds) => {
+          dispatch({ type: 'SET_ONLINE_USERS', payload: UserIds });
+        });
+        dispatch(fetchUsers());
+      }
     }
-  }, [dispatch, profile]);
+  }, [dispatch, profile, currentUser]);
 
+
+  // UPDATED LOGIC: This useEffect now correctly handles cases for both logged-in and anonymous users.
   useEffect(() => {
-    // Create profile data from available information
-    if (users && profile) {
-      // Find user in users list
-      const targetUser = users.find(u => u._id === profile);
+    // We wait until the posts for the profile have been loaded.
+    if (posts && profile) {
+      // For logged-in users, the `users` array will be populated.
+      // For anonymous users, `users` will be empty.
+      const targetUser = Array.isArray(users) ? users.find(u => u._id === profile) : null;
       
-      // Calculate profile data
+      // We can now reliably get the profile info.
+      // 1. Try to get it from `targetUser` (if logged in and users are fetched).
+      // 2. Fallback to the first post's data if `targetUser` is not found.
+      // 3. Use a default 'Unknown' if there are no posts either.
       const userPosts = Array.isArray(posts) ? posts : [];
       const userName = targetUser?.name || (userPosts.length > 0 ? userPosts[0].name : 'Unknown User');
       const firstName = userName.split(' ')[0];
       const userId = profile || '';
       
-      // Calculate actual friends count
-      const actualFriends = users.filter(u => u._id !== profile).length;
+      // Calculate friends count. If `targetUser` exists, use their friends. Otherwise, default to 0 for anonymous view.
+      const friendsCount = targetUser?.friends?.length || 0;
       
       setProfileData({
         id: profile,
         name: userName,
         username: `${firstName.toLowerCase()}${userId.slice(0, 4)}`,
         postCount: userPosts.length,
-        friends: actualFriends,
+        friends: friendsCount, // Use the calculated friends count
         joinedDate: targetUser?.createdAt || (userPosts.length > 0 ? userPosts[0].createdAt : new Date().toISOString()),
         avatar: userName.charAt(0).toUpperCase(),
+        // A profile is valid if we found the user OR if they have posts.
         hasUser: !!targetUser || userPosts.length > 0,
       });
     }
@@ -542,13 +552,13 @@ const Profile = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  // Fixed navigation - Use replace instead of push
   const handleProfileNavigation = (userId) => {
     navigate(`/posts/profile/${userId}`, { replace: true });
   };
 
-  // Loading State
-  if (isLoading || isUserLoading) {
+  // The loading state now depends on `profileData` being set, not just `isLoading`.
+  // This is because we need to wait for the profile data to be constructed.
+  if (isLoading || !profileData) {
     return (
       <Box
         sx={{
@@ -592,7 +602,7 @@ const Profile = () => {
     );
   }
 
-  // Profile not found (no user and no posts)
+  // Profile not found (no user info and no posts)
   if (!profileData?.hasUser) {
     return (
       <Box

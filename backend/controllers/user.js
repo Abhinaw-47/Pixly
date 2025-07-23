@@ -6,6 +6,8 @@ import dotenv from 'dotenv'
 import { generateVerificationCode } from '../utils/generateVerificationCode.js'
 import { sendVerificationEmail, sendWelcomeEmail } from '../mailtrap/email.js'
 dotenv.config()
+const generateAccessToken = (payload) => jwt.sign(payload, process.env.JWT_AcessSecret, { expiresIn: '15m' });
+const generateRefreshToken = (payload) => jwt.sign(payload, process.env.JWT_RefreshSecret, { expiresIn: '7d' });
 export const signup=async(req,res)=>{
 const {email,password,firstName,lastName,confirmPassword}=req.body
 try {
@@ -20,16 +22,12 @@ try {
    const hashedPassword=await bcrypt.hash(password,12)
    const verificationToken=generateVerificationCode()
    const result=await User.create({email,password:hashedPassword,name:`${firstName} ${lastName}`,verificationToken,verificationTokenExpire:Date.now()+3600000}) 
+      const accessToken = generateAccessToken({ email: result.email, id: result._id });
+    const refreshToken = generateRefreshToken({ email: result.email, id: result._id });
+    // const token=jwt.sign({email:result.email,id:result._id},process.env.JWT_SECRET, {expiresIn:'1h'})
   
-    const token=jwt.sign({email:result.email,id:result._id},process.env.JWT_SECRET, {expiresIn:'1h'})
-    // res.cookie("token", token, {
-	// 	httpOnly: true,
-	// 	secure: process.env.NODE_ENV === "production",
-	// 	sameSite: "strict",
-	// 	maxAge: 7 * 24 * 60 * 60 * 1000,
-	// });
    
-    res.status(200).json({result,token}) 
+    res.status(200).json({result,accessToken,refreshToken}) 
 } catch (error) {
     res.status(500).json({message:error.message})
 }
@@ -50,8 +48,10 @@ export const signin=async(req,res)=>{
         res.status(400).json({message:"Invalid credentials"})
     }
    
-    const token=jwt.sign({email:existingUser.email,id:existingUser._id},'test', {expiresIn:'1h'})
-    res.status(200).json({result:existingUser,token})
+    // const token=jwt.sign({email:existingUser.email,id:existingUser._id},'test', {expiresIn:'1h'})
+      const accessToken = generateAccessToken({ email: existingUser.email, id: existingUser._id });
+    const refreshToken = generateRefreshToken({ email: existingUser.email, id: existingUser._id });
+    res.status(200).json({result:existingUser,accessToken,refreshToken})
            
     } catch (error) {
         res.status(500).json({message:error.message})
@@ -73,10 +73,24 @@ export const googleSignin=async(req,res)=>{
             googleId:user.sub
         });
     }
-    const jwtToken=jwt.sign({email:result.email,id:result._id}, 'test', {expiresIn:'1h'})
-    res.status(200).json({result,token:jwtToken})
+        const accessToken = generateAccessToken({ email: existingUser.email, id: existingUser._id });
+    const refreshToken = generateRefreshToken({ email: existingUser.email, id: existingUser._id });
+    // const jwtToken=jwt.sign({email:result.email,id:result._id}, 'test', {expiresIn:'1h'})
+    res.status(200).json({result,accessToken,refreshToken})
         
     } catch (error) {
         res.status(500).json({message:error.message})
     }
 }
+export const refreshAccessToken = (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(401).json({ message: 'Missing refresh token' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_RefreshSecret);
+    const newAccessToken = generateAccessToken({ email: decoded.email, id: decoded.id });
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (err) {
+    res.status(403).json({ message: 'Invalid refresh token' });
+  }
+};

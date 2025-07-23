@@ -3,7 +3,9 @@
 export default (state={authData:null,onlineUsers:[]},action)=>{
     switch(action.type){
         case 'AUTH':
-            localStorage.setItem('profile',JSON.stringify({...action?.data}));
+           localStorage.setItem('profile',JSON.stringify({...action?.data,
+            accessToken: action.data.accessToken,
+            refreshToken: action.data.refreshToken,}));
             return {...state,authData:action?.data};
         case 'LOGOUT':
             localStorage.clear();

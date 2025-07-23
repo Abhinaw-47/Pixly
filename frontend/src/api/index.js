@@ -1,15 +1,39 @@
 import axios from 'axios';
 import {io} from 'socket.io-client';
-
+import { logout } from '../utils/logout';
 const API = axios.create({baseURL:'http://localhost:5000'});
 let socket = null;
 
 API.interceptors.request.use((req) => {
-    if(localStorage.getItem('profile')){ 
-        req.headers.Authorization = `Bearer ${JSON.parse(localStorage.getItem('profile')).token}`;
+     const profile=JSON.parse(localStorage.getItem('profile'));
+    if(profile?.accessToken){ 
+        req.headers.Authorization=`Bearer ${profile.accessToken}`;
     }
     return req;
 })
+API.interceptors.response.use((res)=>res,
+async(error)=>{
+  const originalRequest=error.config;
+  if(error.response?.status===401&& !originalRequest._retry){
+     originalRequest._retry=true;
+     try {
+        const profile=JSON.parse(localStorage.getItem('profile'));
+        const {refreshToken}=profile;
+        const {data}=await API.post('/user/refreshToken',{token:refreshToken});
+        const updatedProfile={...profile,accessToken:data.accessToken};
+        localStorage.setItem('profile',JSON.stringify(updatedProfile));
+        originalRequest.headers['Authorization']=`Bearer ${data.accessToken}`;
+        API.defaults.headers.common['Authorization']=`Bearer ${data.accessToken}`;
+        return API(originalRequest);
+     } catch (refreshError) {
+        console.error('Error refreshing token:', refreshError);
+        logout();
+        return Promise.reject(refreshError);
+     } 
+  } 
+  return Promise.reject(error); 
+})
+
 
 // Post API calls
 export const fetchPostsBySearch = (searchQuery) => API.get(`/posts/search?searchQuery=${searchQuery.search || 'none'}`);
