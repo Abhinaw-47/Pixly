@@ -52,7 +52,7 @@ const AppContent = () => {
           <Route path="/posts/search" element={<Home showForm={showForm} setShowForm={setShowForm} />} />
           <Route path="/auth" element={user ? <Navigate to="/posts" replace /> : <Auth />} />
           <Route path="/chat" element={user ? <Chat /> : <Navigate to="/posts" replace />} />
-          <Route path='/posts/profile/:profile' element={<Profile/>} />
+          <Route path='/posts/profile/:profile' element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

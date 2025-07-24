@@ -38,4 +38,13 @@ export const sendMessage=(id,message)=>async(dispatch)=>{
         console.log(error);
     }
 }
-
+export const fetchAllMessages = () => async (dispatch) => {
+    try {
+        dispatch({ type: 'START_MESSAGES_LOADING' });
+        const { data } = await api.fetchAllMessages();
+        dispatch({ type: 'FETCH_MESSAGES', payload: data });
+        dispatch({ type: 'END_MESSAGES_LOADING' });
+    } catch (error) {
+        console.log(error);
+    }
+}

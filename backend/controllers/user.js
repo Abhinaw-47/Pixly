@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 import { generateVerificationCode } from '../utils/generateVerificationCode.js'
 import { sendVerificationEmail, sendWelcomeEmail } from '../mailtrap/email.js'
 dotenv.config()
-const generateAccessToken = (payload) => jwt.sign(payload, process.env.JWT_AcessSecret, { expiresIn: '15m' });
+const generateAccessToken = (payload) => jwt.sign(payload, process.env.JWT_AcessSecret, { expiresIn: '25m' });
 const generateRefreshToken = (payload) => jwt.sign(payload, process.env.JWT_RefreshSecret, { expiresIn: '7d' });
 export const signup=async(req,res)=>{
 const {email,password,firstName,lastName,confirmPassword}=req.body

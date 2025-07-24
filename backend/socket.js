@@ -2,15 +2,16 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: ["http://localhost:5173"],
-        methods: ["GET", "POST"],
-        credentials: true
-    },
-});
+
+
+// const io = new Server(server, {
+//     cors: {
+//         origin: ["http://localhost:5173"],
+//         methods: ["GET", "POST"],
+//         credentials: true
+//     },
+// });
+let io;
 
 const UserSocketMap = new Map(); // Using Map for better performance
 
@@ -49,13 +50,24 @@ function removeUser(socketId) {
     
     return userId;
 }
-
-io.on("connection", (socket) => {
+export const initSocket = (server) => {
+    io = new Server(server, {
+        cors: {
+            origin: ["http://localhost:5173"],
+            methods: ["GET", "POST"],
+            credentials: true
+        },
+    });
+    io.on("connection", (socket) => {
     console.log(`🔌 Socket connected: ${socket.id}`);
     
     // Get user ID from query params
     const userId = socket.handshake.query.userId;
-    
+    socket.on('join',(userId) => {
+        socket.join(userId);
+        console.log(`User ${userId} joined room`);
+    })
+
     if (!userId || userId === 'undefined' || userId === 'null') {
         console.log("❌ No valid userId provided, disconnecting socket");
         socket.disconnect();
@@ -118,18 +130,6 @@ io.on("connection", (socket) => {
         }
     });
 
-    // Handle typing indicators
-    socket.on("typing", (data) => {
-        const { receiverId, isTyping } = data;
-        const receiverSocketId = getReceiverSocketId(receiverId);
-        
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit("userTyping", {
-                senderId: userId,
-                isTyping
-            });
-        }
-    });
 
     // Handle disconnect
     socket.on("disconnect", (reason) => {
@@ -151,8 +151,8 @@ io.on("connection", (socket) => {
     socket.on("error", (error) => {
         console.error(`❌ Socket error for user ${userId}:`, error);
     });
+  
 });
-
 // Cleanup on server shutdown
 process.on('SIGTERM', () => {
     console.log('🛑 Server shutting down, cleaning up sockets...');
@@ -166,4 +166,18 @@ process.on('SIGINT', () => {
     io.close();
 });
 
-export { io, server, app };
+    return io
+    
+}
+
+
+export const getIO=()=>{
+    if(!io){
+        throw new Error("Socket.io not initialized");
+    }
+    return io;
+}
+
+
+
+export { io};

@@ -1,10 +1,13 @@
 import * as api from '../api';
 
 export const getPosts=(page)=>async(dispatch)=>{
+    console.log(page,"page");
 try {
+    console.log("fetching posts");
     dispatch({type:'START_LOADING'});
     const {data}=await api.fetchPosts(page);
- console.log(data);
+    console.log("post has been fetched");
+ console.log(data,"posts");
     dispatch({type:'FETCH_ALL',payload:data});
     dispatch({type:'END_LOADING'});
 } catch (error) {
@@ -15,7 +18,7 @@ export const getPostsBySearch=(searchQuery)=>async(dispatch)=>{
     try {
         dispatch({type:'START_LOADING'});
         const {data}=await api.fetchPostsBySearch(searchQuery);
-     
+        
         dispatch({type:'FETCH_BY_SEARCH',payload:data.data});
         dispatch({type:'END_LOADING'});
     } catch (error) {
@@ -62,7 +65,7 @@ export const likePost=(id)=>async(dispatch)=>{
 }
 
 export const getProfile=(profile)=>async(dispatch)=>{
-    console.log(profile.profile);
+    console.log(profile.profile,"profile");
     try {
         dispatch({type:'START_LOADING'});
         const {data}=await api.getProfile(profile.profile);

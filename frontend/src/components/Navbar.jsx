@@ -1,368 +1,216 @@
 import React, { useEffect, useState } from 'react';
-import { Avatar, IconButton, Typography, Box, Fade, Slide, Zoom } from '@mui/material';
-import { FaSignOutAlt, FaUser } from 'react-icons/fa';
-import { BsStars } from 'react-icons/bs';
-import { MdLogout } from 'react-icons/md';
-import { keyframes } from '@mui/system';
-import { useDispatch } from 'react-redux';
+import { Avatar, IconButton, Typography, Box, Badge, Menu, MenuItem, ListItemIcon, ListItemText, Divider, CircularProgress, Tooltip, Button } from '@mui/material';
+import { FaUser, FaHeart, FaEnvelope } from 'react-icons/fa';
+import { MdLogout, MdFlashOn, MdHome } from 'react-icons/md'; // New Icons
+import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { disconnectSocket, connectSocket, fetchPosts } from '../api';
-import GlitchText from './GlitchText';
-import { TbHexagonLetterP } from 'react-icons/tb';
+import { motion } from 'framer-motion'; // Import framer-motion
+
+import { IoMdNotifications } from "react-icons/io";
+import { disconnectSocket, connectSocket, addSocketListener } from '../api';
 import { getPosts } from '../actions/post';
+import { getNotifications, addNewNotification, markAsRead } from '../actions/notification';
 
-
-const floatLogo = keyframes`
-  0%, 100% { 
-    transform: translateY(0px) rotate(0deg) scale(1);
-  }
-  25% { 
-    transform: translateY(-8px) rotate(5deg) scale(1.05);
-  }
-  50% { 
-    transform: translateY(-4px) rotate(-3deg) scale(1.02);
-  }
-  75% { 
-    transform: translateY(-12px) rotate(2deg) scale(1.08);
+// Animation for the shimmering text effect on hover
+const shimmerKeyframes = `
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 `;
-
-const shimmerText = keyframes`
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-`;
-
-const pulseGlow = keyframes`
-  0%, 100% { 
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3),
-                0 0 40px rgba(59, 130, 246, 0.2),
-                inset 0 0 20px rgba(139, 92, 246, 0.1);
-  }
-  50% { 
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.5),
-                0 0 60px rgba(59, 130, 246, 0.3),
-                inset 0 0 30px rgba(139, 92, 246, 0.2);
-  }
-`;
-
-const slideBackground = keyframes`
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-`;
-
-const bounceIn = keyframes`
-  0% { 
-    transform: scale(0.3) rotateY(-180deg); 
-    opacity: 0; 
-  }
-  50% { 
-    transform: scale(1.1) rotateY(-90deg); 
-    opacity: 1; 
-  }
-  100% { 
-    transform: scale(1) rotateY(0deg); 
-    opacity: 1; 
-  }
-`;
-
-const COLORS = {
-  darkBg: `
-    radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-    linear-gradient(135deg, #000000 0%, #1a0033 25%, #2a003f 50%, #1a0033 75%, #000000 100%)
-  `,
-  text: '#ffffff',
-  textMuted: '#a1a1aa',
-  danger: '#ef4444',
-  purple: '#8b5cf6',
-  border: 'rgba(255, 255, 255, 0.2)',
-};
 
 const Navbar = () => {
-  const [user, setUser] = useState(() => {
-    const profile = localStorage.getItem('profile');
-    return profile ? JSON.parse(profile) : null;
-  });
-  const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('profile')));
+  const [anchorEl, setAnchorEl] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    setMounted(true);
-    const profile = localStorage.getItem('profile');
-    const userData = profile?.length > 0 ? JSON.parse(profile) : null;
-
-    if (userData?.token) {
-      try {
-        const decodedData = jwtDecode(userData.token);
-        if (decodedData.exp * 1000 < new Date().getTime()) {
-          logoutHandler();
-          return;
-        }
-        connectSocket();
-      } catch (error) {
-        logoutHandler();
-      }
-    }
-
-    setUser(userData);
-  }, [location]);
+  const { notifications, unreadCount, isLoading } = useSelector((state) => state.notifications);
 
   const logoutHandler = () => {
+   
     dispatch({ type: 'LOGOUT' });
     localStorage.removeItem('profile');
     setUser(null);
     disconnectSocket();
-    navigate('/');
+    dispatch({ type: 'FETCH_USERS_SUCCESS', payload: [] });
+    navigate('/posts');
   };
-const clickLogo=()=> {
- dispatch(getPosts(1));
-  navigate('/posts');
-}
+ 
   
+  // Combine all user-related effects into one
+  useEffect(() => {
+    const profileData = localStorage.getItem('profile');
+    if (!profileData) {
+      setUser(null);
+      disconnectSocket();
+      return;
+    }
+    const userData = JSON.parse(profileData);
+    if (userData?.accessToken) {
+        try {
+            const decodedToken = jwtDecode(userData.accessToken);
+            if (decodedToken.exp * 1000 < new Date().getTime()) {
+                logoutHandler(); // Use the handler which already includes navigation etc.
+                return;
+            }
+        } catch(e) {
+            logoutHandler();
+            return;
+        }
+    }
+    setUser(userData);
+    if (userData?.result?._id) {
+        connectSocket();
+        dispatch(getNotifications());
+        addSocketListener('newNotification', (notification) => {
+            dispatch(addNewNotification(notification));
+        });
+    }
+  }, [location, dispatch]);
+
+  const clickLogo = () => {
+    dispatch(getPosts(1));
+    navigate('/posts');
+  };
+
+  const handleNotificationClick = (event) => setAnchorEl(event.currentTarget);
+  const handleNotificationClose = () => setAnchorEl(null);
+
+  const handleNotificationItemClick = (notification) => {
+    if (!notification.read) dispatch(markAsRead(notification._id));
+    handleNotificationClose();
+    if (notification.type === 'message' && notification.sender?._id) {
+      navigate(`/chat`);
+    }
+  };
+  
+  const handleProfileClick = () => {
+    if(user?.result?._id) navigate(`/posts/profile/${user.result._id}`);
+  }
+
+  // Framer Motion animation variants
+  const navbarVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
-    <Fade in={mounted} timeout={800}>
-      <Box
-        sx={{
-          background: COLORS.darkBg,
-          backdropFilter: 'blur(20px)',
+    <motion.div variants={navbarVariants} initial="hidden" animate="visible">
+      <style>{shimmerKeyframes}</style>
+      <Box sx={{
+          background: 'rgba(13, 13, 27, 0.7)', // Dark, glassy background
+          backdropFilter: 'blur(15px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           px: { xs: 2, sm: 4 },
-          py: 2,
-          position: 'sticky',
+          py: 1.5,
+          position: 'fixed', // Changed from sticky for better layering
           top: 0,
-          zIndex: 1000,
-          border: `1px solid ${COLORS.border}`,
-          borderLeft: 'none',
-          borderRight: 'none',
-          borderTop: 'none',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-          overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: '-100%',
-            width: '100%',
-            height: '100%',
-            background: `
-              linear-gradient(
-                90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.05), 
-                transparent
-              )
-            `,
-            animation: `${slideBackground} 4s ease-in-out infinite`,
-          },
-        }}
-      >
-       
-        <Slide direction="right" in={mounted} timeout={800}>
-          <Link to="/" onClick={clickLogo} style={{ textDecoration: 'none' }}>
-    <Box
-  sx={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 1.5,
-    color: COLORS.text,
-    position: 'relative',
-    zIndex: 1,
-  }}
->
-  {/* Icon */}
-  <Zoom in={mounted} timeout={1000} style={{ transitionDelay: '200ms' }}>
-    <IconButton
-  sx={{
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#8b5cf6',
-    width: 56,
-    height: 56,
-    animation: `${floatLogo} 5s ease-in-out infinite`,
-    borderRadius: '16px',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)',
-    transition: 'all 0.3s ease',
-    backdropFilter: 'blur(10px)',
-    '&:hover': {
-      transform: 'scale(1.15) rotate(3deg)',
-      background: 'rgba(139, 92, 246, 0.1)',
-      color: '#c084fc',
-      boxShadow: '0 0 30px rgba(139, 92, 246, 0.6)',
-    },
-  }}
->
-  <TbHexagonLetterP size={30} />
-</IconButton>
-  </Zoom>
-
-  {/* Glitch Text */}
-  <GlitchText
-    speed={1}
-    enableShadows={true}
-    enableOnHover={false}
-    className="custom-class"
-  >
-    PIXLY
-  </GlitchText>
-</Box>
-
+          left: 0,
+          right: 0,
+          zIndex: 1100, // High z-index to be above all content
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        }}>
+        
+        {/* Logo and Brand Name */}
+        <motion.div variants={itemVariants} transition={{ delay: 0.1 }}>
+          <Link to="/posts" onClick={clickLogo} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <motion.div whileHover={{ scale: 1.2, rotate: 360 }} transition={{ type: "spring", stiffness: 300 }}>
+              <IconButton sx={{ background: 'linear-gradient(45deg, #00FFFF, #2E73E8)', color: 'black', width: 48, height: 48 }}>
+                <MdFlashOn size={28} />
+              </IconButton>
+            </motion.div>
+            <Typography variant="h5" sx={{ 
+              fontWeight: 700,
+              color: 'white',
+              position: 'relative',
+              '&:hover::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0, left: 0, width: '100%', height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent)',
+                  animation: 'shimmer 1.5s infinite',
+              }
+            }}>
+              Connectify
+            </Typography>
           </Link>
-        </Slide>
-   
-       
-        <Slide direction="left" in={mounted} timeout={800} style={{ transitionDelay: '300ms' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, position: 'relative', zIndex: 1 }}>
-            {user ? (
-              <Fade in timeout={600} style={{ transitionDelay: '500ms' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-               
-                  <Box 
-                    sx={{ 
-                      display: { xs: 'none', sm: 'flex' }, 
-                      alignItems: 'center', 
-                      gap: 1.5,
-                      p: 1.5,
-                      borderRadius: '20px',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        background: 'rgba(255, 255, 255, 0.15)',
-                        transform: 'translateY(-2px)',
-                      },
-                    }}
-                  >
-                    <Zoom in timeout={800} style={{ transitionDelay: '600ms' }}>
-                      <Avatar
-                        sx={{
-                          background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                          color: COLORS.text,
-                          fontWeight: 700,
-                          width: 40,
-                          height: 40,
-                          border: '2px solid rgba(255, 255, 255, 0.3)',
-                          animation: `${bounceIn} 0.8s ease-out`,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            transform: 'scale(1.1) rotateZ(5deg)',
-                            boxShadow: '0 8px 25px rgba(59, 130, 246, 0.4)',
-                          },
-                        }}
-                      >
-                        {user?.result?.name?.charAt(0).toUpperCase() || <FaUser size={16} />}
-                      </Avatar>
-                    </Zoom>
-                    
-                    <Box>
-                      <Typography 
-                        variant="body1" 
-                        sx={{ 
-                          color: COLORS.text,
-                          fontWeight: 600,
-                          fontSize: '0.9rem',
-                        }}
-                      >
-                        {user?.result?.name || 'User'}
-                      </Typography>
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          color: COLORS.textMuted,
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        Online
-                      </Typography>
-                    </Box>
-                  </Box>
+        </motion.div>
+        
+        {/* User Actions */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {user ? (
+            <>
+              {/* Home and Notification Buttons */}
+              <motion.div variants={itemVariants} transition={{ delay: 0.2 }}>
+                <Tooltip title="Home">
+                  <IconButton onClick={clickLogo} sx={{ color: 'white',}}><MdHome size={24} /></IconButton>
+                </Tooltip>
+              </motion.div>
 
-                
-                  <Zoom in timeout={800} style={{ transitionDelay: '700ms' }}>
-                    <IconButton
-                      onClick={logoutHandler}
-                      sx={{
-                        background: 'rgba(239, 68, 68, 0.2)',
-                        color: '#ef4444',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        width: 45,
-                        height: 45,
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #ef4444, #dc2626)',
-                          color: 'white',
-                          transform: 'scale(1.1) rotate(5deg)',
-                          boxShadow: '0 8px 25px rgba(239, 68, 68, 0.4)',
-                        },
-                      }}
-                    >
-                      <MdLogout size={20} />
-                    </IconButton>
-                  </Zoom>
+              <motion.div variants={itemVariants} transition={{ delay: 0.3 }}>
+                <Tooltip title="Notifications">
+                  <IconButton onClick={handleNotificationClick} sx={{ color: 'white' }}>
+                    <Badge badgeContent={unreadCount} color="error"><IoMdNotifications size={24} /></Badge>
+                  </IconButton>
+                </Tooltip>
+              </motion.div>
+
+              {/* User Avatar and Name */}
+              <motion.div variants={itemVariants} transition={{ delay: 0.4 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: '24px', background: 'rgba(255, 255, 255, 0.1)', cursor: 'pointer', '&:hover': { background: 'rgba(255, 255, 255, 0.2)' } }}>
+                  <Avatar onClick={handleProfileClick} sx={{ width: 32, height: 32, bgcolor: '#00FFFF', color: '#000' }}>
+                    {user.result.name?.charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Typography onClick={handleProfileClick} sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 600 }}>
+                    {user.result.name}
+                  </Typography>
+                  <Tooltip title="Logout">
+                     <IconButton onClick={logoutHandler} size="small" sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#F87171', background: 'rgba(248, 113, 113, 0.1)' } }}>
+                       <MdLogout />
+                     </IconButton>
+                  </Tooltip>
                 </Box>
-              </Fade>
-            ) : (
-              <Zoom in timeout={800} style={{ transitionDelay: '400ms' }}>
-                <Link to="/auth" style={{ textDecoration: 'none' }}>
-                  <Box
-                    component="button"
-                    sx={{
-                      background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                      color: 'white',
-                      px: 3,
-                      py: 1.5,
-                      borderRadius: '20px',
-                      fontWeight: 700,
-                      fontSize: '0.95rem',
-                      border: '2px solid rgba(255, 255, 255, 0.2)',
-                      cursor: 'pointer',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      animation: `${pulseGlow} 3s ease-in-out infinite`,
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                        transform: 'translateY(-3px) scale(1.05)',
-                        boxShadow: '0 15px 35px rgba(59, 130, 246, 0.6)',
-                        animation: 'none',
-                      },
-                      '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0,
-                        left: '-100%',
-                        width: '100%',
-                        height: '100%',
-                        background: `
-                          linear-gradient(
-                            90deg, 
-                            transparent, 
-                            rgba(255, 255, 255, 0.2), 
-                            transparent
-                          )
-                        `,
-                        transition: 'left 0.6s',
-                      },
-                      '&:hover::before': {
-                        left: '100%',
-                      },
-                    }}
-                  >
-                    Sign In
-                  </Box>
-                </Link>
-              </Zoom>
-            )}
-          </Box>
-        </Slide>
+              </motion.div>
+            </>
+          ) : (
+            // Sign In Button
+            <motion.div variants={itemVariants} transition={{ delay: 0.2 }}>
+              <Button variant="contained" onClick={() => navigate('/auth')} sx={{ background: 'linear-gradient(45deg, #00FFFF, #2E73E8)', color: '#000', fontWeight: 'bold', borderRadius: '20px' }}>
+                Sign In
+              </Button>
+            </motion.div>
+          )}
+        </Box>
+        
+        {/* Notification Popover Menu */}
+        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleNotificationClose} PaperProps={{ sx: { mt: 1.5, width: '320px', bgcolor: 'rgba(28, 28, 45, 0.9)', color: 'white', border: '1px solid rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(10px)' }}}>
+          <Typography variant="h6" sx={{ px: 2, py: 1 }}>Notifications</Typography>
+          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}><CircularProgress sx={{color: '#00FFFF'}}/></Box>
+          ) : notifications.length > 0 ? (
+            notifications.map((notification) => (
+              <MenuItem key={notification._id} onClick={() => handleNotificationItemClick(notification)} sx={{ fontWeight: notification.read ? 'normal' : 'bold', whiteSpace: 'normal', '&:hover': { backgroundColor: 'rgba(0, 255, 255, 0.1)'} }}>
+                <ListItemIcon sx={{ color: 'white' }}>{notification.type === 'like' ? <FaHeart color="#f472b6" /> : <FaEnvelope color="#60a5fa" />}</ListItemIcon>
+                <ListItemText primary={notification.message} />
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem disabled><ListItemText primary="No new notifications" /></MenuItem>
+          )}
+        </Menu>
       </Box>
-    </Fade>
+    </motion.div>
   );
 };
 

@@ -1,4 +1,5 @@
 import express from 'express'
+import multer from 'multer';
 import {getPosts,createPost,updatePost,deletePost,likePost,getPostBySearch, getProfile} from '../controllers/post.js'
 import auth from '../middleware/auth.js'
 const router=express.Router()

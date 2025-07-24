@@ -54,6 +54,12 @@ export const fetchUsers = () => API.get('/messages/users');
 export const getMessages = (id) => API.get(`/messages/${id}`);
 export const sendMessage = (id, formData) => API.post(`/messages/${id}`, formData);
 
+
+export const getNotifications = () => API.get('/notifications');
+
+export const markNotificationAsRead = (id) => API.patch(`/notifications/${id}/read`);
+
+export const fetchAllMessages = () => API.get('/messages');
 // Socket Management
 export const connectSocket = () => {
     try {
