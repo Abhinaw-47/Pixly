@@ -93,4 +93,20 @@ export const refreshAccessToken = (req, res) => {
   } catch (err) {
     res.status(403).json({ message: 'Invalid refresh token' });
   }
+};export const getUsersByIds = async (req, res) => {
+  try {
+    const { userIds } = req.body; // Array of user IDs
+    
+    if (!userIds || !Array.isArray(userIds)) {
+      return res.status(400).json({ message: 'Please provide an array of user IDs' });
+    }
+
+    const users = await User.find({ 
+      _id: { $in: userIds } 
+    }).select('_id name'); // Only return _id and name fields
+
+    res.status(200).json({ data: users });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

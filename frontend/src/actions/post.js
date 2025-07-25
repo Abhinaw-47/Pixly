@@ -36,6 +36,16 @@ export const createPost=(newPost)=>async(dispatch)=>{
        }
 
 }
+export const getLikedPosts = () => async (dispatch) => {
+    try {
+        dispatch({ type: 'START_LOADING' });
+        const { data } = await api.getLikedPosts();
+        dispatch({ type: 'FETCH_LIKED_POSTS', payload: data.data });
+        dispatch({ type: 'END_LOADING' });
+    } catch (error) {
+        console.log(error);
+    }
+}
 export const updatedPost=(id,updatedPost)=>async(dispatch)=>{
     try {
         const {data}=await api.updatedPost(id,updatedPost);

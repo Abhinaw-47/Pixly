@@ -43,6 +43,7 @@ export const createPost = (newPost) => API.post('/posts', newPost);
 export const updatedPost = (id, updatedPost) => API.patch(`/posts/${id}`, updatedPost);
 export const deletePost = (id) => API.delete(`/posts/${id}`);
 export const likePost = (id) => API.patch(`/posts/${id}/likePost`);
+export const getLikedPosts = () => API.get('/posts/likes');
 
 // Auth API calls
 export const signIn = (formData) => API.post('/user/signin', formData);
@@ -53,7 +54,7 @@ export const googleSignin = (formData) => API.post('/user/googleSignin', formDat
 export const fetchUsers = () => API.get('/messages/users');
 export const getMessages = (id) => API.get(`/messages/${id}`);
 export const sendMessage = (id, formData) => API.post(`/messages/${id}`, formData);
-
+export const getUsersByIds = (userIds) => API.post('/user/users/batch', { userIds });
 
 export const getNotifications = () => API.get('/notifications');
 

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Avatar, IconButton, Typography, Box, Badge, Menu, MenuItem, ListItemIcon, ListItemText, Divider, CircularProgress, Tooltip, Button } from '@mui/material';
 import { FaUser, FaHeart, FaEnvelope } from 'react-icons/fa';
-import { MdLogout, MdFlashOn, MdHome } from 'react-icons/md'; // New Icons
+import { MdLogout, MdFlashOn, MdHome } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { motion } from 'framer-motion'; // Import framer-motion
+import { motion } from 'framer-motion';
 
 import { IoMdNotifications } from "react-icons/io";
 import { disconnectSocket, connectSocket, addSocketListener } from '../api';
@@ -30,7 +30,6 @@ const Navbar = () => {
   const { notifications, unreadCount, isLoading } = useSelector((state) => state.notifications);
 
   const logoutHandler = () => {
-   
     dispatch({ type: 'LOGOUT' });
     localStorage.removeItem('profile');
     setUser(null);
@@ -39,7 +38,6 @@ const Navbar = () => {
     navigate('/posts');
   };
  
-  
   // Combine all user-related effects into one
   useEffect(() => {
     const profileData = localStorage.getItem('profile');
@@ -53,7 +51,7 @@ const Navbar = () => {
         try {
             const decodedToken = jwtDecode(userData.accessToken);
             if (decodedToken.exp * 1000 < new Date().getTime()) {
-                logoutHandler(); // Use the handler which already includes navigation etc.
+                logoutHandler();
                 return;
             }
         } catch(e) {
@@ -106,18 +104,18 @@ const Navbar = () => {
     <motion.div variants={navbarVariants} initial="hidden" animate="visible">
       <style>{shimmerKeyframes}</style>
       <Box sx={{
-          background: 'rgba(13, 13, 27, 0.7)', // Dark, glassy background
+          background: 'rgba(13, 13, 27, 0.7)',
           backdropFilter: 'blur(15px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           px: { xs: 2, sm: 4 },
           py: 1.5,
-          position: 'fixed', // Changed from sticky for better layering
+          position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 1100, // High z-index to be above all content
+          zIndex: 1100,
           borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         }}>
         
@@ -192,21 +190,168 @@ const Navbar = () => {
           )}
         </Box>
         
-        {/* Notification Popover Menu */}
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleNotificationClose} PaperProps={{ sx: { mt: 1.5, width: '320px', bgcolor: 'rgba(28, 28, 45, 0.9)', color: 'white', border: '1px solid rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(10px)' }}}>
-          <Typography variant="h6" sx={{ px: 2, py: 1 }}>Notifications</Typography>
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+        {/* Notification Popover Menu with Scrolling */}
+        <Menu 
+          anchorEl={anchorEl} 
+          open={Boolean(anchorEl)} 
+          onClose={handleNotificationClose} 
+          PaperProps={{ 
+            sx: { 
+              mt: 1.5, 
+              width: '320px', 
+              maxHeight: '400px', // Set maximum height
+              bgcolor: 'rgba(28, 28, 45, 0.9)', 
+              color: 'white', 
+              border: '1px solid rgba(255, 255, 255, 0.2)', 
+              backdropFilter: 'blur(10px)',
+              borderRadius: '12px',
+              overflow: 'hidden' // Hide overflow to allow internal scrolling
+            }
+          }}
+          MenuListProps={{
+            sx: {
+              padding: 0, // Remove default padding
+              maxHeight: '340px', // Leave space for header
+              overflowY: 'auto', // Enable vertical scrolling
+              '&::-webkit-scrollbar': {
+                width: '6px'
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '10px'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: 'rgba(0, 255, 255, 0.4)',
+                borderRadius: '10px',
+                '&:hover': {
+                  background: 'rgba(0, 255, 255, 0.6)'
+                }
+              }
+            }
+          }}
+        >
+          {/* Fixed Header */}
+          <Box sx={{ 
+            position: 'sticky', 
+            top: 0, 
+            zIndex: 1, 
+            bgcolor: 'rgba(28, 28, 45, 0.95)', 
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <Typography variant="h6" sx={{ px: 2, py: 1.5, fontWeight: 600 }}>
+              Notifications
+              {unreadCount > 0 && (
+                <Badge 
+                  badgeContent={unreadCount} 
+                  color="error" 
+                  sx={{ ml: 1, '& .MuiBadge-badge': { fontSize: '0.7rem' } }}
+                />
+              )}
+            </Typography>
+            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+          </Box>
+
+          {/* Scrollable Content */}
           {isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}><CircularProgress sx={{color: '#00FFFF'}}/></Box>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              p: 4, 
+              minHeight: '120px' 
+            }}>
+              <CircularProgress sx={{ color: '#00FFFF' }} />
+            </Box>
           ) : notifications.length > 0 ? (
-            notifications.map((notification) => (
-              <MenuItem key={notification._id} onClick={() => handleNotificationItemClick(notification)} sx={{ fontWeight: notification.read ? 'normal' : 'bold', whiteSpace: 'normal', '&:hover': { backgroundColor: 'rgba(0, 255, 255, 0.1)'} }}>
-                <ListItemIcon sx={{ color: 'white' }}>{notification.type === 'like' ? <FaHeart color="#f472b6" /> : <FaEnvelope color="#60a5fa" />}</ListItemIcon>
-                <ListItemText primary={notification.message} />
-              </MenuItem>
-            ))
+            <>
+              {notifications.map((notification, index) => (
+                <MenuItem 
+                  key={notification._id} 
+                  onClick={() => handleNotificationItemClick(notification)} 
+                  sx={{ 
+                    fontWeight: notification.read ? 'normal' : 'bold',
+                    whiteSpace: 'normal',
+                    py: 1.5,
+                    px: 2,
+                    borderBottom: index < notifications.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+                    '&:hover': { 
+                      backgroundColor: 'rgba(0, 255, 255, 0.1)',
+                      transform: 'translateX(2px)',
+                      transition: 'all 0.2s ease'
+                    },
+                    '&:last-child': {
+                      borderBottom: 'none'
+                    }
+                  }}
+                >
+                  <ListItemIcon sx={{ 
+                    color: 'white', 
+                    minWidth: '40px',
+                    mr: 1 
+                  }}>
+                    {notification.type === 'like' ? 
+                      <FaHeart color="#f472b6" size={18} /> : 
+                      <FaEnvelope color="#60a5fa" size={18} />
+                    }
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={notification.message}
+                    primaryTypographyProps={{
+                      fontSize: '0.875rem',
+                      lineHeight: 1.4,
+                      color: notification.read ? 'rgba(255, 255, 255, 0.8)' : 'white'
+                    }}
+                    secondary={
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: 'rgba(255, 255, 255, 0.5)',
+                          fontSize: '0.75rem',
+                          mt: 0.5,
+                          display: 'block'
+                        }}
+                      >
+                        {new Date(notification.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </Typography>
+                    }
+                  />
+                  {!notification.read && (
+                    <Box sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: '#00FFFF',
+                      ml: 1,
+                      flexShrink: 0
+                    }} />
+                  )}
+                </MenuItem>
+              ))}
+              
+              {/* Bottom padding for better scrolling experience */}
+              <Box sx={{ height: '8px' }} />
+            </>
           ) : (
-            <MenuItem disabled><ListItemText primary="No new notifications" /></MenuItem>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 4,
+              minHeight: '120px',
+              color: 'rgba(255, 255, 255, 0.6)'
+            }}>
+              <IoMdNotifications size={32} style={{ marginBottom: '8px', opacity: 0.5 }} />
+              <Typography variant="body2" align="center">
+                No new notifications
+              </Typography>
+            </Box>
           )}
         </Menu>
       </Box>

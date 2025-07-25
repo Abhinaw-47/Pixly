@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Button, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Avatar, IconButton, Collapse } from '@mui/material';
+import { 
+  Box, Paper, Typography, Button, Chip, Dialog, DialogTitle, 
+  DialogContent, DialogActions, Avatar, IconButton, Collapse,
+  Menu, MenuItem, Divider 
+} from '@mui/material';
 import { FaThumbsUp, FaTrash, FaEdit, FaHeart, FaUser, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import CloseIcon from '@mui/icons-material/Close';
 import { keyframes } from '@mui/system';
 import { useDispatch } from 'react-redux';
 import { deletePost, getProfile, likePost } from '../../../actions/post';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getUsersByIds } from '../../../api';
 
 const heartPulse = keyframes`
   0%, 100% { transform: scale(1); }
@@ -19,6 +25,8 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [likesMenuAnchor, setLikesMenuAnchor] = useState(null);
+  const [usersWhoLiked, setUsersWhoLiked] = useState([]);
 
   const profileHandler = (creatorId) => {
     dispatch(getProfile({ profile: creatorId }));
@@ -44,6 +52,24 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
       setIsLiked(post.likes.includes(user.result._id));
     }
   }, [user, post.likes]);
+
+  const fetchUsersWhoLiked = async () => {
+    if (post.likes && post.likes.length > 0) {
+      try {
+        const { data } = await getUsersByIds(post.likes);
+        const usersMap = {};
+        data.data.forEach(user => {
+          usersMap[user._id] = user;
+        });
+        const users = post.likes.map((userId) => {
+          return usersMap[userId] || { _id: userId, name: 'Unknown User' };
+        });
+        setUsersWhoLiked(users);
+      } catch (error) {
+        console.error('Error fetching users who liked:', error);
+      }
+    }
+  };
 
   const handleLike = (e) => {
     e.stopPropagation();
@@ -72,21 +98,48 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
     setIsDescriptionExpanded(!isDescriptionExpanded);
   };
 
-  // Better video detection for Cloudinary URLs and data URLs
-  const isVideo = post.selectedFile && (
-    post.selectedFile.startsWith('data:video') || 
-    post.selectedFile.includes('/video/') ||
-    post.selectedFile.match(/\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i)
-  );
+  const handleLikesClick = (e) => {
+    e.stopPropagation();
+    if (post.likes && post.likes.length > 0) {
+      fetchUsersWhoLiked();
+      setLikesMenuAnchor(e.currentTarget);
+    }
+  };
+
+  const handleLikesMenuClose = (e) => {
+    if (e) e.stopPropagation();
+    setLikesMenuAnchor(null);
+  };
+
+  const handleUserClick = (userId) => {
+    profileHandler(userId);
+    handleLikesMenuClose();
+  };
+
+  const isVideo = post.selectedFile && (post.selectedFile.startsWith('data:video') || post.selectedFile.includes('/video/') || post.selectedFile.match(/\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i));
   const isOwner = user?.result?._id === post?.creator;
-  
-  // Check if description needs expansion (more than 2 lines approximately)
   const shouldShowExpandButton = post.description && post.description.length > 100;
+
+  const formatLikesDisplay = () => {
+    if (!post.likes || post.likes.length === 0) return '';
+    const currentUserId = user?.result?._id;
+    const currentUserLiked = post.likes.includes(currentUserId);
+    const likesCount = post.likes.length;
+    if (likesCount === 1) {
+      return currentUserLiked ? 'You like this' : '1 person likes this';
+    }
+    if (currentUserLiked) {
+      const othersCount = likesCount - 1;
+      return `You and ${othersCount} other${othersCount > 1 ? 's' : ''} like this`;
+    }
+    return `${likesCount} people like this`;
+  };
 
   return (
     <>
       <Paper
         elevation={0}
+        onClick={() => profileHandler(post.creator)}
         sx={{
           width: '100%',
           height: '100%',
@@ -100,6 +153,7 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
           color: 'white',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           overflow: 'hidden',
+          cursor: 'pointer',
           transition: 'transform 0.3s ease, box-shadow 0.3s ease',
           '&:hover': {
             transform: 'translateY(-8px)',
@@ -107,34 +161,14 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
           },
         }}
       >
-        {/* Header with Creator Info */}
+        {/* Header */}
         <Box sx={{ p: 2, pb: 1, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-          <Box 
-            onClick={() => profileHandler(post.creator)} 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 1.5, 
-              cursor: 'pointer',
-              '&:hover .creator-name': {
-                textDecoration: 'underline',
-                textDecorationColor: '#00FFFF'
-              }
-            }}
-          >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, '&:hover .creator-name': { textDecoration: 'underline', textDecorationColor: '#00FFFF' } }}>
             <Avatar sx={{ bgcolor: '#00FFFF', color: '#000', width: 40, height: 40 }}>
               <FaUser />
             </Avatar>
             <Box sx={{ flexGrow: 1 }}>
-              <Typography 
-                className="creator-name"
-                variant="subtitle1" 
-                sx={{ 
-                  fontWeight: 600, 
-                  color: 'white',
-                  transition: 'all 0.2s ease'
-                }}
-              >
+              <Typography className="creator-name" variant="subtitle1" sx={{ fontWeight: 600, color: 'white', transition: 'all 0.2s ease' }}>
                 {post.name}
               </Typography>
               <Typography variant="caption" color="rgba(255, 255, 255, 0.6)">
@@ -148,102 +182,86 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
         <Box sx={{ position: 'relative', backgroundColor: '#000', flexShrink: 0 }}>
           <Box sx={{ height: 220 }}>
             {isVideo ? (
-              <video 
-                src={post.selectedFile} 
-                controls 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'cover' 
-                }} 
-              />
+              <video src={post.selectedFile} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <img 
-                src={post.selectedFile} 
-                alt={post.title} 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'cover' 
-                }} 
-              />
+              <img src={post.selectedFile} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             )}
           </Box>
         </Box>
 
         {/* Content Section */}
-        <Box sx={{ 
-          p: 2, 
-          display: 'flex', 
-          flexDirection: 'column', 
-          flexGrow: 1,
-          overflow: 'hidden'
-        }}>
+        <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
           {/* Title */}
-          <Typography 
-            variant="h6" 
-            fontWeight={700} 
-            sx={{ 
-              mb: 1,
-              overflow: 'hidden', 
-              textOverflow: 'ellipsis', 
-              display: '-webkit-box', 
-              WebkitLineClamp: '2', 
-              WebkitBoxOrient: 'vertical',
-              lineHeight: 1.4
-            }}
-          >
+          <Typography variant="h6" fontWeight={700} sx={{ mb: 1, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
             {post.title}
           </Typography>
 
-          {/* Description */}
+          {/* Description - FIXED */}
           {post.description && (
-            <Box sx={{ mb: 2 }}>
-              <Collapse in={isDescriptionExpanded} collapsedSize={40}>
-                <Typography 
-                  variant="body2" 
-                  color="rgba(255, 255, 255, 0.8)"
-                  sx={{ 
-                    lineHeight: 1.5,
-                    whiteSpace: 'pre-wrap'
-                  }}
-                >
-                  {post.description}
-                </Typography>
-              </Collapse>
-              
-              {shouldShowExpandButton && (
-                <Button
-                  onClick={toggleDescription}
-                  size="small"
-                  sx={{ 
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    textTransform: 'none',
-                    p: 0,
-                    minWidth: 'auto',
-                    mt: 0.5,
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                      color: '#00FFFF'
+            <Box sx={{ mb: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{
+                flexGrow: 1,
+                overflow: 'hidden',
+                position: 'relative'
+              }}>
+                <Collapse in={isDescriptionExpanded} collapsedSize={40}>
+                  <Box sx={{
+                    maxHeight: isDescriptionExpanded ? '100px' : 'auto',
+                    overflowY: isDescriptionExpanded ? 'auto' : 'hidden',
+                    pr: isDescriptionExpanded ? 1 : 0,
+                    pb: isDescriptionExpanded ? 1 : 0, // Add padding bottom when expanded
+                    '&::-webkit-scrollbar': {
+                      width: '4px'
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      background: 'transparent'
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      background: 'rgba(0, 255, 255, 0.3)',
+                      borderRadius: '10px'
                     }
-                  }}
-                  endIcon={isDescriptionExpanded ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-                >
-                  {isDescriptionExpanded ? 'Show less' : 'Show more'}
-                </Button>
+                  }}>
+                    <Typography 
+                      variant="body2" 
+                      color="rgba(255, 255, 255, 0.8)" 
+                      sx={{ 
+                        lineHeight: 1.5, 
+                        whiteSpace: 'pre-wrap' 
+                      }}
+                    >
+                      {post.description}
+                    </Typography>
+                  </Box>
+                </Collapse>
+              </Box>
+              
+              {/* Show More/Less Button - FIXED positioning */}
+              {shouldShowExpandButton && (
+                <Box sx={{ mt: 0.5, flexShrink: 0 }}>
+                  <Button
+                    onClick={toggleDescription}
+                    size="small"
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      textTransform: 'none',
+                      p: 0,
+                      minWidth: 'auto',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                        color: '#00FFFF'
+                      }
+                    }}
+                    endIcon={isDescriptionExpanded ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                  >
+                    {isDescriptionExpanded ? 'Show less' : 'Show more'}
+                  </Button>
+                </Box>
               )}
             </Box>
           )}
 
           {/* Tags */}
-          <Box sx={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: 0.5,
-            mb: 2,
-            overflow: 'hidden',
-            maxHeight: '32px'
-          }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 'auto', flexShrink: 0 }}>
             {post.tags.slice(0, 3).map((tag) => (
               <Chip 
                 key={tag} 
@@ -252,36 +270,49 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
                 sx={{ 
                   bgcolor: 'rgba(0, 255, 255, 0.1)', 
                   color: '#00FFFF', 
-                  fontWeight: 500,
-                  fontSize: '0.75rem'
+                  fontWeight: 500, 
+                  fontSize: '0.75rem' 
                 }} 
               />
             ))}
           </Box>
         </Box>
 
-        {/* Actions Footer */}
-        <Box sx={{ 
-          p: 2, 
-          pt: 1, 
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          flexShrink: 0
-        }}>
+        {/* Footer */}
+        <Box sx={{ p: 2, pt: 1, borderTop: '1px solid rgba(255, 255, 255, 0.1)', flexShrink: 0 }}>
+          {post.likes && post.likes.length > 0 && (
+            <Box 
+              onClick={handleLikesClick} 
+              sx={{ 
+                mb: 1, 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: 0.5, 
+                cursor: 'pointer', 
+                color: 'rgba(255, 255, 255, 0.7)', 
+                '&:hover': { color: '#00FFFF' }
+              }}
+            >
+              <Typography variant="caption">{formatLikesDisplay()}</Typography>
+              {Boolean(likesMenuAnchor) ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+            </Box>
+          )}
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Button
-              onClick={handleLike}
+            <Button 
+              onClick={handleLike} 
               startIcon={
                 <Box sx={{ animation: isLiked ? `${heartPulse} 0.6s ease` : 'none' }}>
                   {isLiked ? <FaHeart color="#F87171" size={18}/> : <FaThumbsUp size={18} />}
                 </Box>
-              }
+              } 
               sx={{ 
                 color: isLiked ? '#F87171' : 'rgba(255, 255, 255, 0.7)', 
                 fontWeight: 'bold', 
                 textTransform: 'none', 
-                fontSize: '0.9rem',
-                py: 0.5,
-                px: 1,
+                fontSize: '0.9rem', 
+                py: 0.5, 
+                px: 1 
               }}
             >
               {post.likes?.length || 0}
@@ -290,22 +321,10 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
             <Box>
               {isOwner && (
                 <>
-                  <IconButton 
-                    onClick={editHandler} 
-                    sx={{ 
-                      color: 'rgba(255,255,255,0.7)', 
-                      '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' } 
-                    }}
-                  >
+                  <IconButton onClick={editHandler} sx={{ color: 'rgba(255,255,255,0.7)', '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' } }}>
                     <FaEdit size={16} /> 
                   </IconButton>
-                  <IconButton 
-                    onClick={handleDeleteClick} 
-                    sx={{ 
-                      color: '#F87171', 
-                      '&:hover': { backgroundColor: 'rgba(248, 113, 113, 0.1)' } 
-                    }}
-                  >
+                  <IconButton onClick={handleDeleteClick} sx={{ color: '#F87171', '&:hover': { backgroundColor: 'rgba(248, 113, 113, 0.1)' } }}>
                     <FaTrash size={16} />
                   </IconButton>
                 </>
@@ -315,11 +334,53 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
         </Box>
       </Paper>
 
+      {/* Likes Menu */}
+      <Menu
+        anchorEl={likesMenuAnchor}
+        open={Boolean(likesMenuAnchor)}
+        onClose={handleLikesMenuClose}
+        onClick={(e) => e.stopPropagation()}
+        PaperProps={{ 
+          sx: { 
+            background: 'rgba(20, 20, 30, 0.95)', 
+            backdropFilter: 'blur(15px)', 
+            border: '1px solid rgba(255, 255, 255, 0.1)', 
+            borderRadius: '12px', 
+            color: 'white', 
+            maxHeight: 300, 
+            width: 250 
+          }
+        }}
+      >
+        <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 1}}>
+          <Typography variant="subtitle2" sx={{ px: 2, py: 1, fontWeight: 600 }}>
+            Liked by
+          </Typography>
+          <IconButton onClick={handleLikesMenuClose} size="small" sx={{color: 'rgba(255,255,255,0.7)', '&:hover': {color: 'white'}}}>
+            <CloseIcon/>
+          </IconButton>
+        </Box>
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+        {usersWhoLiked.map((likeUser, index) => (
+          <MenuItem 
+            key={`${likeUser._id}-${index}`} 
+            onClick={() => handleUserClick(likeUser._id)} 
+            sx={{ py: 1.5, '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }}}
+          >
+            <Avatar sx={{ bgcolor: '#00FFFF', color: '#000', width: 32, height: 32, mr: 1.5 }}>
+              <FaUser size={14} />
+            </Avatar>
+            <Typography variant="body2">{likeUser.name}</Typography>
+          </MenuItem>
+        ))}
+      </Menu>
+
+      {/* Delete Confirmation Dialog */}
       <Dialog 
         open={showDeleteConfirm} 
         onClose={() => setShowDeleteConfirm(false)} 
         onClick={(e) => e.stopPropagation()} 
-        PaperProps={{
+        PaperProps={{ 
           sx: { 
             borderRadius: '16px', 
             background: '#14141E', 
@@ -334,7 +395,7 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button 
-            onClick={() => setShowDeleteConfirm(false)} 
+            onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(false); }} 
             sx={{ color: 'rgba(255,255,255,0.7)' }}
           >
             Cancel

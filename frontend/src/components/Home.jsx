@@ -168,7 +168,7 @@ function useQuery() {
 const SIDEBAR_WIDTH = 380;
 const NAVBAR_HEIGHT = '88px';
 
-const HomePage = ({ showForm, setShowForm }) => {
+const Home = ({ showForm, setShowForm }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -277,4 +277,4 @@ const HomePage = ({ showForm, setShowForm }) => {
   );
 };
 
-export default HomePage;
+export default Home;

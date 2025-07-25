@@ -57,6 +57,18 @@ export const getProfile = async (req, res) => {
    }
 }
 
+export const getLikedPosts = async (req, res) => {
+   try {
+      if(!req.userId) return res.json({ message: 'Unauthenticated' });
+      const likedPosts=await PostMessage.find({
+         likes: { $in: [req.userId] }
+      }).sort({ _id: -1 });
+      res.json({ data: likedPosts });
+   } catch (error) {
+      res.status(404).json({ message: error.message });
+   }
+}
+
 export const createPost = async (req, res) => {
    const { title, description, tags, name } = req.body;
    
@@ -98,6 +110,8 @@ export const createPost = async (req, res) => {
       await newPost.save();
       console.log('Post created successfully:', newPost);
       res.status(201).json(newPost);
+      // const populatedPost = await PostMessage.findById(newPost._id).populate('likes', 'name _id');
+      // res.status(201).json(populatedPost);
       
    } catch (error) {
       console.error('Error creating post:', error);

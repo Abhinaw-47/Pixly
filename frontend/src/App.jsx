@@ -12,6 +12,7 @@ import NotFound from './components/NotFound';
 import { getPosts } from './actions/post';
 import { fetchUsers } from './actions/message';
 import Profile from './components/Profile';
+import LikedPosts from './components/LikedPosts';
 
 function App() {
  
@@ -54,6 +55,7 @@ const AppContent = () => {
           <Route path="/chat" element={user ? <Chat /> : <Navigate to="/posts" replace />} />
           <Route path='/posts/profile/:profile' element={<Profile />} />
           <Route path="*" element={<NotFound />} />
+          <Route path="/posts/likes" element={user ? <LikedPosts /> : <Navigate to="/auth" />} />
         </Routes>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import express from 'express'
 import multer from 'multer';
-import { getPosts, createPost, updatePost, deletePost, likePost, getPostBySearch, getProfile } from '../controllers/post.js'
+import { getPosts, createPost, updatePost, deletePost, likePost, getPostBySearch, getProfile, getLikedPosts } from '../controllers/post.js'
 import auth from '../middleware/auth.js'
 
 const router = express.Router()
@@ -21,6 +21,7 @@ const upload = multer({
 router.get('/profile/:profile', getProfile);
 router.get('/search', getPostBySearch);
 router.get('/', getPosts);
+router.get('/likes',auth,getLikedPosts)
 // Fix: Use 'selectedFile' (not 'SelectedFile') to match your form field name
 router.post('/', auth, upload.single('selectedFile'), createPost);
 router.patch('/:id', auth, upload.single('selectedFile'), updatePost);

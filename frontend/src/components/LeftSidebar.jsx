@@ -1,27 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, Avatar, Button, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
-import { FaUser, FaPen, FaCommentDots, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa';
+import { FaUser, FaPen, FaCommentDots, FaSignOutAlt, FaSignInAlt, FaHeart } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { getProfile } from '../actions/post';
 
-// ✨ FIX: The component no longer accepts a `user` prop.
 const LeftSidebar = ({ onLogout, onShowForm }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  // ✨ FIX: The component now manages its own user state from localStorage.
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('profile')));
 
-  // ✨ FIX: This useEffect ensures the user data is fresh on every navigation change.
   useEffect(() => {
     setUser(JSON.parse(localStorage.getItem('profile')));
   }, [location]);
 
 
   const handleProfileClick = () => {
-    // This now correctly uses the logged-in user's ID from its own state.
-     dispatch(getProfile({ profile: user?.result?._id }));
     if (user?.result?._id) navigate(`/posts/profile/${user.result._id}`);
   };
 
@@ -57,6 +52,15 @@ const LeftSidebar = ({ onLogout, onShowForm }) => {
               <List sx={{ color: 'white' }}>
                 <ListItem disablePadding><ListItemButton sx={{ borderRadius: '8px' }} onClick={onShowForm}><ListItemIcon sx={{ color: '#00FFFF' }}><FaPen /></ListItemIcon><ListItemText primary="Create Post" /></ListItemButton></ListItem>
                 <ListItem disablePadding><ListItemButton sx={{ borderRadius: '8px' }} onClick={() => navigate('/chat')}><ListItemIcon sx={{ color: '#2E73E8' }}><FaCommentDots /></ListItemIcon><ListItemText primary="Messages" /></ListItemButton></ListItem>
+                
+                {/* ✨ NEW: Liked Posts Button */}
+                <ListItem disablePadding>
+                  <ListItemButton sx={{ borderRadius: '8px' }} onClick={() => navigate('/posts/likes')}>
+                    <ListItemIcon sx={{ color: '#F87171' }}><FaHeart /></ListItemIcon>
+                    <ListItemText primary="Liked Posts" />
+                  </ListItemButton>
+                </ListItem>
+
                 <Divider sx={{ my: 1, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
                 <ListItem disablePadding><ListItemButton sx={{ borderRadius: '8px', '&:hover': { backgroundColor: 'rgba(248, 113, 113, 0.1)'} }} onClick={onLogout}><ListItemIcon sx={{ color: '#F87171' }}><FaSignOutAlt /></ListItemIcon><ListItemText primaryTypographyProps={{color: '#F87171'}}>Sign Out</ListItemText></ListItemButton></ListItem>
               </List>
