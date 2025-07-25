@@ -7,9 +7,10 @@ import { useDispatch } from 'react-redux';
 const RightSidebar = ({ onlineUsers = [], allUsers = [], recentMessages = [] }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const user=JSON.parse(localStorage.getItem("profile"));
+  const user = JSON.parse(localStorage.getItem("profile"));
+
   const handleUserClick = (clickedUser) => {
-    if(!clickedUser) return;
+    if (!clickedUser) return;
     dispatch({ type: 'SELECT_USER', payload: clickedUser });
     navigate('/chat');
   };
@@ -22,7 +23,7 @@ const RightSidebar = ({ onlineUsers = [], allUsers = [], recentMessages = [] }) 
         </Typography>
     </Paper>
   );
-  
+
   const usersToDisplay = allUsers.filter(u => u._id !== user?.result?._id);
 
   return (
@@ -30,53 +31,64 @@ const RightSidebar = ({ onlineUsers = [], allUsers = [], recentMessages = [] }) 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {user ? (
           <>
-            {/* ✨ REDESIGNED FRIENDS SECTION */}
+            {/* ✨ FRIENDS SECTION WITH VERTICAL SCROLL */}
             <Paper elevation={0} sx={{ p: 2, borderRadius: '24px', background: 'rgba(28, 28, 45, 0.7)', backdropFilter: 'blur(15px)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
               <Box display="flex" alignItems="center" gap={1.5} mb={2}>
                 <FaUsers color="#00FFFF" />
                 <Typography variant="h6" fontWeight={600} sx={{ color: 'white' }}>Friends</Typography>
               </Box>
-              <Grid container spacing={2}>
-                {usersToDisplay.length > 0 ? usersToDisplay.slice(0, 4).map((u) => (
-                  <Grid item xs={6} key={u._id}>
-                    <Box 
-                      onClick={() => handleUserClick(u)}
-                      sx={{ 
-                        textAlign: 'center', 
-                        p: 1, 
-                        borderRadius: '12px', 
-                        cursor: 'pointer',
-                        transition: 'background-color 0.3s ease', 
-                        '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' } 
-                      }}
-                    >
-                      <Badge
-                        overlap="circular"
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                        variant="dot"
-                        invisible={!onlineUsers.includes(u._id)}
-                        sx={{
-                          '& .MuiBadge-dot': {
-                            backgroundColor: '#44b700',
-                            boxShadow: '0 0 0 2px #1C1C2D',
-                          },
-                        }}
-                      >
-                        <Avatar sx={{ width: 70, height: 70, mx: 'auto', mb: 1, background: 'linear-gradient(45deg, #00FFFF, #2E73E8)' }}>
-                          {u.name.charAt(0).toUpperCase()}
-                        </Avatar>
-                      </Badge>
-                      <Typography noWrap color="white" fontWeight={500}>{u.name}</Typography>
-                    </Box>
+
+              <Box sx={{
+                maxHeight: '350px', // Set a max height for the container
+                overflowY: 'auto',  // Enable vertical scroll on overflow
+                pr: 1, // Padding to avoid scrollbar overlapping content
+                // Custom scrollbar for this specific box
+                '&::-webkit-scrollbar': { width: '4px' },
+                '&::-webkit-scrollbar-track': { background: 'rgba(255,255,255,0.05)' },
+                '&::-webkit-scrollbar-thumb': { background: 'rgba(0, 255, 255, 0.3)', borderRadius: '10px' }
+              }}>
+                {usersToDisplay.length > 0 ? (
+                  <Grid container spacing={2}>
+                    {usersToDisplay.map((u) => (
+                      <Grid item xs={6} key={u._id}>
+                        <Box
+                          onClick={() => handleUserClick(u)}
+                          sx={{
+                            textAlign: 'center',
+                            p: 1,
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.3s ease',
+                            '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' }
+                          }}
+                        >
+                          <Badge
+                            overlap="circular"
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                            variant="dot"
+                            invisible={!onlineUsers.includes(u._id)}
+                            sx={{
+                              '& .MuiBadge-dot': {
+                                backgroundColor: '#44b700',
+                                boxShadow: '0 0 0 2px #1C1C2D', // Theme background color for contrast
+                              },
+                            }}
+                          >
+                            <Avatar sx={{ width: 70, height: 70, mx: 'auto', mb: 1, background: 'linear-gradient(45deg, #00FFFF, #2E73E8)' }}>
+                              {u.name.charAt(0).toUpperCase()}
+                            </Avatar>
+                          </Badge>
+                          <Typography noWrap color="white" fontWeight={500}>{u.name}</Typography>
+                        </Box>
+                      </Grid>
+                    ))}
                   </Grid>
-                )) : (
-                  <Grid item xs={12}>
-                    <Typography variant="body2" color="rgba(255,255,255,0.6)" textAlign="center" sx={{p: 2}}>
-                      No other users yet.
-                    </Typography>
-                  </Grid>
+                ) : (
+                  <Typography variant="body2" color="rgba(255,255,255,0.6)" textAlign="center" sx={{p: 2}}>
+                    No other users yet.
+                  </Typography>
                 )}
-              </Grid>
+              </Box>
             </Paper>
 
             {/* RECENT CHATS SECTION (UNCHANGED) */}

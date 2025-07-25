@@ -1,13 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMessages } from '../actions/message';
+import { getProfile } from '../actions/post';
 import ChatInput from './ChatInput';
 import { Box, Paper, Typography, Avatar, useMediaQuery, IconButton, Badge } from '@mui/material';
 import { FaUserCircle, FaArrowLeft, FaPaperPlane } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const ChatContainer = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { selectedUser, messages } = useSelector((s) => s.message);
   const { onlineUsers } = useSelector((state) => state.auth);
   const isMobile = useMediaQuery('(max-width:900px)');
@@ -24,6 +27,21 @@ const ChatContainer = () => {
   }, [messages]);
 
   const fmtTime = (t) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Function to detect if media is video (handles both data URLs and Cloudinary URLs)
+  const isVideoFile = (url) => {
+    return url && (
+      url.startsWith('data:video') || 
+      url.includes('/video/') ||
+      url.match(/\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i)
+    );
+  };
+
+  // Handle profile redirect
+  const handleProfileClick = (userId) => {
+    dispatch(getProfile({ profile: userId }));
+    navigate(`/posts/profile/${userId}`);
+  };
 
   if (!selectedUser) {
     return (
@@ -43,12 +61,51 @@ const ChatContainer = () => {
     <Box display="flex" flexDirection="column" height="100%" sx={{ background: 'rgba(18, 18, 18, 0.7)', backdropFilter: 'blur(10px)'}}>
       <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', p: 2, background: 'rgba(13, 13, 27, 0.7)', backdropFilter: 'blur(15px)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
         {isMobile && <IconButton onClick={() => dispatch({ type: 'SELECT_USER', payload: null })} sx={{ mr: 2, color: 'white' }}><FaArrowLeft /></IconButton>}
-        <Badge overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} variant="dot" invisible={!isOnline} sx={{ '& .MuiBadge-dot': { bgcolor: '#44b700', boxShadow: '0 0 0 2px #1C1C2D' }}}>
-          <Avatar sx={{ width: 48, height: 48 }}>{selectedUser.name.charAt(0).toUpperCase()}</Avatar>
-        </Badge>
-        <Box ml={2}>
-          <Typography variant="h6" fontWeight={600} color="white">{selectedUser.name}</Typography>
-          <Typography variant="caption" sx={{ color: isOnline ? '#44b700' : 'rgba(255,255,255,0.6)' }}>{isOnline ? 'Online' : 'Offline'}</Typography>
+        
+        {/* Clickable profile section */}
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer',
+            borderRadius: '12px',
+            p: 1,
+            transition: 'background 0.2s ease',
+            '&:hover': {
+              background: 'rgba(255, 255, 255, 0.05)'
+            }
+          }}
+          onClick={() => handleProfileClick(selectedUser._id)}
+        >
+          <Badge 
+            overlap="circular" 
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} 
+            variant="dot" 
+            invisible={!isOnline} 
+            sx={{ '& .MuiBadge-dot': { bgcolor: '#44b700', boxShadow: '0 0 0 2px #1C1C2D' }}}
+          >
+            <Avatar sx={{ width: 48, height: 48 }}>
+              {selectedUser.name.charAt(0).toUpperCase()}
+            </Avatar>
+          </Badge>
+          <Box ml={2}>
+            <Typography 
+              variant="h6" 
+              fontWeight={600} 
+              color="white"
+              sx={{
+                '&:hover': {
+                  textDecoration: 'underline',
+                  textDecorationColor: '#00FFFF'
+                }
+              }}
+            >
+              {selectedUser.name}
+            </Typography>
+            <Typography variant="caption" sx={{ color: isOnline ? '#44b700' : 'rgba(255,255,255,0.6)' }}>
+              {isOnline ? 'Online' : 'Offline'}
+            </Typography>
+          </Box>
         </Box>
       </Paper>
 
@@ -64,6 +121,8 @@ const ChatContainer = () => {
         ) : (
             messages.map((msg, index) => {
                 const isFromMe = msg.senderId !== selectedUser._id;
+                const isVideo = isVideoFile(msg.image);
+                
                 return (
                     <motion.div key={msg._id || index} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }}>
                         <Box display="flex" justifyContent={isFromMe ? 'flex-end' : 'flex-start'} mb={2}>
@@ -73,24 +132,38 @@ const ChatContainer = () => {
                                     borderRadius: isFromMe ? '20px 20px 5px 20px' : '20px 20px 20px 5px',
                                     background: isFromMe ? 'linear-gradient(45deg, #00FFFF, #2E73E8)' : '#2E2E38', 
                                     color: 'white',
-                                    overflow: 'hidden', // Ensures media conforms to border radius
+                                    overflow: 'hidden',
                                 }}>
-                                    {msg.image ? (
-                                        <Box 
-                                            component={msg.image.startsWith("data:video") ? 'video' : 'img'}
-                                            src={msg.image}
-                                            controls={msg.image.startsWith("data:video")}
-                                            alt="sent media"
-                                            // ✨ FIX: Sleek media styling
-                                            style={{ 
-                                                display: 'block', // Removes bottom space under image
-                                                width: '100%', 
-                                                maxWidth: '400px', 
-                                                borderRadius: '16px', // Rounded corners for the media
-                                                marginBottom: msg.text ? '8px' : '0' 
-                                            }}
-                                        />
-                                    ) : null}
+                                    {msg.image && (
+                                        <Box sx={{ position: 'relative' }}>
+                                            {isVideo ? (
+                                                <video 
+                                                    src={msg.image}
+                                                    controls
+                                                    style={{ 
+                                                        display: 'block',
+                                                        width: '100%', 
+                                                        maxWidth: '400px', 
+                                                        maxHeight: '300px',
+                                                        borderRadius: '16px',
+                                                        marginBottom: msg.text ? '8px' : '0'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <img 
+                                                    src={msg.image}
+                                                    alt="sent media"
+                                                    style={{ 
+                                                        display: 'block',
+                                                        width: '100%', 
+                                                        maxWidth: '400px', 
+                                                        borderRadius: '16px',
+                                                        marginBottom: msg.text ? '8px' : '0'
+                                                    }}
+                                                />
+                                            )}
+                                        </Box>
+                                    )}
                                     
                                     {msg.text && (
                                         <Typography variant="body1" sx={{ px: msg.image ? '10px' : 0, pb: msg.image ? '5px' : 0 }}>

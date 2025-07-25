@@ -72,7 +72,12 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
     setIsDescriptionExpanded(!isDescriptionExpanded);
   };
 
-  const isVideo = post.selectedFile?.startsWith('data:video');
+  // Better video detection for Cloudinary URLs and data URLs
+  const isVideo = post.selectedFile && (
+    post.selectedFile.startsWith('data:video') || 
+    post.selectedFile.includes('/video/') ||
+    post.selectedFile.match(/\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i)
+  );
   const isOwner = user?.result?._id === post?.creator;
   
   // Check if description needs expansion (more than 2 lines approximately)

@@ -26,24 +26,87 @@ const ChatInput = () => {
     }
   };
 
+  // Function to detect if the selected file is a video
+  const isVideoFile = (url) => {
+    return url && (
+      url.startsWith('data:video') || 
+      url.includes('/video/') ||
+      url.match(/\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i)
+    );
+  };
+
   const hasContent = post.text.trim() || post.image;
+  const isVideo = isVideoFile(post.image);
 
   return (
     <Box sx={{ p: 2, background: 'rgba(13, 13, 27, 0.7)', backdropFilter: 'blur(15px)', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
       {post.image && (
         <Slide direction="up" in={!!post.image}>
-          <Box sx={{ mb: 1, position: 'relative', width: '100px', height: '100px' }}>
-            <IconButton onClick={() => setPost({...post, image: ''})} sx={{ position: 'absolute', top: 0, right: 0, zIndex: 1, color: 'white', background: 'rgba(0,0,0,0.5)' }} size="small"><MdClose /></IconButton>
-            <img src={post.image} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}/>
+          <Box sx={{ mb: 1, position: 'relative', width: '120px', height: '120px' }}>
+            <IconButton 
+              onClick={() => setPost({...post, image: ''})} 
+              sx={{ 
+                position: 'absolute', 
+                top: -8, 
+                right: -8, 
+                zIndex: 1, 
+                color: 'white', 
+                background: 'rgba(0,0,0,0.7)',
+                '&:hover': {
+                  background: 'rgba(0,0,0,0.9)'
+                }
+              }} 
+              size="small"
+            >
+              <MdClose />
+            </IconButton>
+            
+            {isVideo ? (
+              <video 
+                src={post.image} 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover', 
+                  borderRadius: '8px',
+                  border: '2px solid rgba(0, 255, 255, 0.3)'
+                }}
+                muted // Mute preview to avoid autoplay issues
+              />
+            ) : (
+              <img 
+                src={post.image} 
+                alt="preview" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover', 
+                  borderRadius: '8px',
+                  border: '2px solid rgba(0, 255, 255, 0.3)'
+                }}
+              />
+            )}
           </Box>
         </Slide>
       )}
-      <Paper component="form" onSubmit={handleSubmit} sx={{ p: '4px 8px', display: 'flex', alignItems: 'center', borderRadius: '20px', background: 'rgba(28, 28, 45, 0.9)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-        <Tooltip title="Attach File">
-          <IconButton sx={{ p: '10px', color: 'rgba(255,255,255,0.7)' }} onClick={() => fileInputRef.current.click()}>
+      
+      <Paper component="form" onSubmit={handleSubmit} sx={{ 
+        p: '4px 8px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        borderRadius: '20px', 
+        background: 'rgba(28, 28, 45, 0.9)', 
+        border: '1px solid rgba(255, 255, 255, 0.1)' 
+      }}>
+        <Tooltip title="Attach Image or Video">
+          <IconButton 
+            sx={{ p: '10px', color: 'rgba(255,255,255,0.7)' }} 
+            onClick={() => fileInputRef.current.click()}
+          >
             <MdAttachFile />
           </IconButton>
         </Tooltip>
+        
         <InputBase
           sx={{ ml: 1, flex: 1, color: 'white' }}
           placeholder={`Message ${selectedUser?.name}...`}
@@ -58,14 +121,33 @@ const ChatInput = () => {
             }
           }}
         />
+        
         <Tooltip title="Send">
           <span>
-            <IconButton type="submit" disabled={!hasContent} sx={{ p: '10px', color: 'white', background: hasContent ? 'linear-gradient(45deg, #00FFFF, #2E73E8)' : 'rgba(255,255,255,0.1)', '&:disabled': { background: 'rgba(255,255,255,0.1)'} }}>
+            <IconButton 
+              type="submit" 
+              disabled={!hasContent} 
+              sx={{ 
+                p: '10px', 
+                color: 'white', 
+                background: hasContent ? 'linear-gradient(45deg, #00FFFF, #2E73E8)' : 'rgba(255,255,255,0.1)', 
+                '&:disabled': { 
+                  background: 'rgba(255,255,255,0.1)' 
+                } 
+              }}
+            >
               <MdSend />
             </IconButton>
           </span>
         </Tooltip>
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} hidden />
+        
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileChange} 
+          accept="image/*,video/*" 
+          hidden 
+        />
       </Paper>
     </Box>
   );
