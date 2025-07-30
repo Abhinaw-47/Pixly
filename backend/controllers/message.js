@@ -3,7 +3,7 @@ import Notification from "../models/notification.js";
 import User from "../models/user.js";
 import { getReceiverSocketId, io } from "../socket.js";
 import cloudinary from "../config/cloudinary.js"; 
-import multer from 'multer';
+
 import fs from 'fs';
 
 export const getUsers = async (req, res) => {

@@ -75,19 +75,27 @@ export const createPost = async (req, res) => {
    try {
       let imageUrl = '';
       
-     
+      // ✅ FIXED: Upload from buffer instead of file path
       if (req.file) {
-         console.log('Uploading file to Cloudinary:', req.file.path);
+         console.log('Uploading file to Cloudinary from buffer');
          
-         const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: 'PIXLY_posts',
-            resource_type: 'auto' 
+         // Upload from buffer using upload_stream
+         const result = await new Promise((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+               {
+                  folder: 'PIXLY_posts',
+                  resource_type: 'auto'
+               },
+               (error, result) => {
+                  if (error) reject(error);
+                  else resolve(result);
+               }
+            ).end(req.file.buffer);
          });
          
          imageUrl = result.secure_url;
          console.log('Cloudinary upload successful:', imageUrl);
       }
-      
 
       let processedTags = [];
       if (tags) {
@@ -110,8 +118,6 @@ export const createPost = async (req, res) => {
       await newPost.save();
       console.log('Post created successfully:', newPost);
       res.status(201).json(newPost);
-      // const populatedPost = await PostMessage.findById(newPost._id).populate('likes', 'name _id');
-      // res.status(201).json(populatedPost);
       
    } catch (error) {
       console.error('Error creating post:', error);
@@ -128,23 +134,31 @@ export const updatePost = async (req, res) => {
    try {
       let imageUrl = '';
       
-      
+      // ✅ FIXED: Upload from buffer instead of file path
       if (req.file) {
-         console.log('Uploading new file to Cloudinary:', req.file.path);
+         console.log('Uploading new file to Cloudinary from buffer');
          
-         const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: 'PIXLY_posts',
-            resource_type: 'auto'
+         // Upload from buffer using upload_stream
+         const result = await new Promise((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+               {
+                  folder: 'PIXLY_posts',
+                  resource_type: 'auto'
+               },
+               (error, result) => {
+                  if (error) reject(error);
+                  else resolve(result);
+               }
+            ).end(req.file.buffer);
          });
          
          imageUrl = result.secure_url;
          console.log('Cloudinary upload successful:', imageUrl);
       } else if (req.body.selectedFile) {
-     
+         // Keep existing image if no new file uploaded
          imageUrl = req.body.selectedFile;
       }
       
-  
       let processedTags = [];
       if (tags) {
          if (typeof tags === 'string') {
@@ -199,7 +213,6 @@ export const likePost = async (req, res) => {
    const updatedPost = await PostMessage.findByIdAndUpdate(id, post, { new: true });
    
    try {
- 
       if (index === -1 && post.creator !== req.userId) {
          const sender = await User.findById(req.userId);
          const notification = new Notification({
@@ -211,7 +224,6 @@ export const likePost = async (req, res) => {
          });
          await notification.save();
 
-         
          const receiverSocketId = getReceiverSocketId(post.creator);
          if (receiverSocketId) {
             io.to(receiverSocketId).emit("newNotification", notification);

@@ -7,9 +7,11 @@ const router = express.Router()
 
 
 const upload = multer({ 
-    dest: 'uploads/',
+    storage: multer.memoryStorage(), 
+    limits: {
+        fileSize: 20 * 1024 * 1024 
+    },
     fileFilter: (req, file, cb) => {
-       
         if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
             cb(null, true);
         } else {
@@ -21,7 +23,7 @@ const upload = multer({
 router.get('/profile/:profile', getProfile);
 router.get('/search', getPostBySearch);
 router.get('/', getPosts);
-router.get('/likes',auth,getLikedPosts)
+router.get('/likes', auth, getLikedPosts)
 
 router.post('/', auth, upload.single('selectedFile'), createPost);
 router.patch('/:id', auth, upload.single('selectedFile'), updatePost);
