@@ -9,23 +9,22 @@ import notificationRoutes from './routes/notification.js'
 import commentRoutes from './routes/comment.js'
 import {app,io,server} from './socket.js'
 
-
 dotenv.config()
 
-
-
+// For backend-first deployment
 app.use(express.json({ limit: '30mb' }));
 app.use(express.urlencoded({ limit: '30mb', extended: true }));
-app.use(cors())
+app.use(cors({
+    origin: true, // Allows all origins for now
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+}));
 
 app.use('/posts',postRoutes)
 app.use('/user',userRoutes)
 app.use('/messages',messageRoutes)
 app.use('/notifications', notificationRoutes)
-app.use('/comments', commentRoutes); ;
-
-
-
+app.use('/comments', commentRoutes);
 
 const port = process.env.PORT || 5000
 const MONGODB_URL=process.env.MONGODB_URL

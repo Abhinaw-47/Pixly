@@ -7,14 +7,14 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:5173"],
-        methods: ["GET", "POST"],
-        credentials: true
+        origin: true, // Allows all origins for now
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization"]
     },
 });
 
 const UserSocketMap = new Map(); 
-
 
 export function getReceiverSocketId(userId) {
     return UserSocketMap.get(userId);
@@ -65,22 +65,19 @@ io.on("connection", (socket) => {
     addUser(userId, socket.id);
     io.emit("getOnlineUsers", getOnlineUsers());
 
-  
     socket.on("sendMessage", (data) => {
         const { receiverId, message, image } = data;
-        const senderId = userId; // Get senderId from the socket connection
+        const senderId = userId;
         const receiverSocketId = getReceiverSocketId(receiverId);
         
         const messageData = {
             senderId,
             receiverId, 
-            
             message,
             image,
             timestamp: new Date().toISOString()
         };
         
-       
         if (receiverSocketId) {
             io.to(receiverSocketId).emit("newMessage", messageData);
             console.log(`📨 Socket: Message sent from ${senderId} to ${receiverId}`);
@@ -88,7 +85,6 @@ io.on("connection", (socket) => {
             console.log(`❌ Receiver ${receiverId} is not online`);
         }
         
-    
         socket.emit("newMessage", messageData);
     });
 
@@ -104,19 +100,15 @@ io.on("connection", (socket) => {
         }
     });
 
-   
     socket.on("disconnect", (reason) => {
         console.log(`🔌 Socket ${socket.id} disconnected: ${reason}`);
         removeUser(socket.id);
-       
         io.emit("getOnlineUsers", getOnlineUsers());
     });
 
-   
     socket.on("error", (error) => {
         console.error(`❌ Socket error for user ${userId}:`, error);
     });
 });
-
 
 export { io, server, app };
