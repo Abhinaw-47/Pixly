@@ -14,17 +14,21 @@ const userSchema=mongoose.Schema({
     },
     googleId:{
         type:String
+    },
+    isVerified:{
+        type:Boolean,
+        default:false
+    },
+    otp:{
+        type:String
+    },
+    otpExpires:{
+        type:Date
     }
-    // isVerified:{
-    //     type:Boolean,
-    //     default:false
-    // },
-    // resetPasswordToken:String,
-    // resetPasswordExpire:Date,
-    // verificationToken:String,
-    // verificationTokenExpire:Date,
 
-})
+   
+
+},{timestamps:true})
 const User=mongoose.model("User",userSchema)
 
 export default User

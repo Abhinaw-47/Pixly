@@ -51,11 +51,13 @@ export const getLikedPosts = () => API.get('/posts/likes');
 export const signIn = (formData) => API.post('/user/signin', formData);
 export const signUp = (formData) => API.post('/user/signup', formData);
 export const googleSignin = (formData) => API.post('/user/googleSignin', formData);
+export const verifyOtp=(otpData)=>API.post('/user/verify-Otp',otpData);
 // Comment API calls
 export const getComments = (postId, page = 1) => API.get(`/comments/${postId}?page=${page}&limit=10`);
 export const addComment = (postId, text) => API.post(`/comments/${postId}`, { text });
 export const deleteComment = (commentId) => API.delete(`/comments/${commentId}`);
 export const likeComment = (commentId) => API.patch(`/comments/${commentId}/like`);
+
 // Message API calls
 export const fetchUsers = () => API.get('/messages/users');
 export const getMessages = (id) => API.get(`/messages/${id}`);
