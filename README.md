@@ -13,7 +13,6 @@
 -   **⚡ Real-Time Chat & Notifications:** A low-latency chat system and live notifications for likes, comments, and messages, all powered by **WebSockets (Socket.io)**.
 -   **🚀 High Performance:** Near-instant feed loading times achieved with **API-side pagination**.
 -   **🎨 Immersive & Responsive UI:** A stunning, fully responsive UI built with Material-UI, featuring a GPU-accelerated **WebGL** animated background and fluid animations with **Framer Motion**.
--   **🤖 AI-Enhanced Content:** **Google Gemini & Copilot** integration to help users create more engaging and interactive posts.
 -   **👤 User Profiles & Social Graph:** View user profiles, liked posts, and search for content across the platform.
 
 ---
