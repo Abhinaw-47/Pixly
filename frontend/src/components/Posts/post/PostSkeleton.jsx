@@ -18,7 +18,7 @@ const PostSkeleton = () => (
             overflow: 'hidden',
         }}
     >
-        {/* Header Section - Creator Info */}
+        
         <Box sx={{ p: 2, pb: 1, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Skeleton 

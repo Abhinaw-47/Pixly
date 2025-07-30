@@ -53,7 +53,7 @@ const LeftSidebar = ({ onLogout, onShowForm }) => {
                 <ListItem disablePadding><ListItemButton sx={{ borderRadius: '8px' }} onClick={onShowForm}><ListItemIcon sx={{ color: '#00FFFF' }}><FaPen /></ListItemIcon><ListItemText primary="Create Post" /></ListItemButton></ListItem>
                 <ListItem disablePadding><ListItemButton sx={{ borderRadius: '8px' }} onClick={() => navigate('/chat')}><ListItemIcon sx={{ color: '#2E73E8' }}><FaCommentDots /></ListItemIcon><ListItemText primary="Messages" /></ListItemButton></ListItem>
                 
-                {/* ✨ NEW: Liked Posts Button */}
+               
                 <ListItem disablePadding>
                   <ListItemButton sx={{ borderRadius: '8px' }} onClick={() => navigate('/posts/likes')}>
                     <ListItemIcon sx={{ color: '#F87171' }}><FaHeart /></ListItemIcon>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Paper, Typography } from '@mui/material';
-import CartoonAvatar from './CartoonAvatar'; // We will reuse the avatar component
+import CartoonAvatar from './CartoonAvatar'; 
 import { FaCalendarAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 

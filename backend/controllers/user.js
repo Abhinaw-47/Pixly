@@ -95,7 +95,7 @@ export const refreshAccessToken = (req, res) => {
   }
 };export const getUsersByIds = async (req, res) => {
   try {
-    const { userIds } = req.body; // Array of user IDs
+    const { userIds } = req.body; 
     
     if (!userIds || !Array.isArray(userIds)) {
       return res.status(400).json({ message: 'Please provide an array of user IDs' });
@@ -103,7 +103,7 @@ export const refreshAccessToken = (req, res) => {
 
     const users = await User.find({ 
       _id: { $in: userIds } 
-    }).select('_id name'); // Only return _id and name fields
+    }).select('_id name'); 
 
     res.status(200).json({ data: users });
   } catch (error) {

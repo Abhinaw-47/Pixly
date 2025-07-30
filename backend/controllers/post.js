@@ -4,14 +4,14 @@ import PostMessage from "../models/postMessage.js";
 import Notification from "../models/notification.js";
 import { getReceiverSocketId } from "../socket.js";
 import User from "../models/user.js";
-import cloudinary from "../config/cloudinary.js"; // Add this import
+import cloudinary from "../config/cloudinary.js"; 
 
 export const getPosts = async (req, res) => {
    const { page } = req.query;
 
    try {
       console.log(page);
-      const LIMIT = 5;
+      const LIMIT = 10;
       const startIndex = (Number(page) - 1) * LIMIT;
 
       const total = await PostMessage.countDocuments({});
@@ -75,20 +75,20 @@ export const createPost = async (req, res) => {
    try {
       let imageUrl = '';
       
-      // Check if file was uploaded
+     
       if (req.file) {
          console.log('Uploading file to Cloudinary:', req.file.path);
          
          const result = await cloudinary.uploader.upload(req.file.path, {
             folder: 'PIXLY_posts',
-            resource_type: 'auto' // This allows both images and videos
+            resource_type: 'auto' 
          });
          
          imageUrl = result.secure_url;
          console.log('Cloudinary upload successful:', imageUrl);
       }
       
-      // Process tags - handle both string and array formats
+
       let processedTags = [];
       if (tags) {
          if (typeof tags === 'string') {
@@ -102,7 +102,7 @@ export const createPost = async (req, res) => {
          title,
          description,
          tags: processedTags,
-         name: name, // Add the name field
+         name: name, 
          selectedFile: imageUrl,
          creator: req.userId
       });
@@ -128,7 +128,7 @@ export const updatePost = async (req, res) => {
    try {
       let imageUrl = '';
       
-      // Check if new file was uploaded
+      
       if (req.file) {
          console.log('Uploading new file to Cloudinary:', req.file.path);
          
@@ -140,11 +140,11 @@ export const updatePost = async (req, res) => {
          imageUrl = result.secure_url;
          console.log('Cloudinary upload successful:', imageUrl);
       } else if (req.body.selectedFile) {
-         // Keep existing file if no new file uploaded
+     
          imageUrl = req.body.selectedFile;
       }
       
-      // Process tags
+  
       let processedTags = [];
       if (tags) {
          if (typeof tags === 'string') {
@@ -199,8 +199,7 @@ export const likePost = async (req, res) => {
    const updatedPost = await PostMessage.findByIdAndUpdate(id, post, { new: true });
    
    try {
-      // Only create a notification on a new "like", not an "unlike"
-      // And don't notify the user if they like their own post
+ 
       if (index === -1 && post.creator !== req.userId) {
          const sender = await User.findById(req.userId);
          const notification = new Notification({
@@ -212,7 +211,7 @@ export const likePost = async (req, res) => {
          });
          await notification.save();
 
-         // Emit a real-time event if the post author is online
+         
          const receiverSocketId = getReceiverSocketId(post.creator);
          if (receiverSocketId) {
             io.to(receiverSocketId).emit("newNotification", notification);

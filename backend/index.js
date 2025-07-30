@@ -6,10 +6,10 @@ import postRoutes from './routes/post.js'
 import userRoutes from './routes/user.js'
 import messageRoutes from './routes/message.js'
 import notificationRoutes from './routes/notification.js'
-import {initSocket} from './socket.js'
-import { Server } from "socket.io";
-import http from "http";
-const app = express();
+import commentRoutes from './routes/comment.js'
+import {app,io,server} from './socket.js'
+
+
 dotenv.config()
 
 
@@ -21,10 +21,10 @@ app.use(cors())
 app.use('/posts',postRoutes)
 app.use('/user',userRoutes)
 app.use('/messages',messageRoutes)
-app.use('/notifications', notificationRoutes);
+app.use('/notifications', notificationRoutes)
+app.use('/comments', commentRoutes); ;
 
-const server = http.createServer(app);
-initSocket(server);
+
 
 
 const port = process.env.PORT || 5000

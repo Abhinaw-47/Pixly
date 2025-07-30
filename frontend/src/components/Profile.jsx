@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getProfile } from '../actions/post';
 import { fetchUsers } from '../actions/message';
 import Background from './Background';
-import LeftSidebar from './LeftSidebar'; // Re-using the homepage Left Sidebar
+import LeftSidebar from './LeftSidebar'; 
 import Posts from './Posts/Posts';
 import ProfileHeader from './ProfileHeader';
 import SuggestedUsers from './SuggestedUsers';
@@ -21,7 +21,7 @@ const Profile = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
 
-  // State & Selectors
+
   const { posts, isLoading: postsLoading } = useSelector((state) => state.post);
   const { users, isUserLoading } = useSelector((state) => state.message);
   const currentUser = JSON.parse(localStorage.getItem('profile'));

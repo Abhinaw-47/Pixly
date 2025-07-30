@@ -12,7 +12,7 @@ import { disconnectSocket, connectSocket, addSocketListener } from '../api';
 import { getPosts } from '../actions/post';
 import { getNotifications, addNewNotification, markAsRead } from '../actions/notification';
 
-// Animation for the shimmering text effect on hover
+
 const shimmerKeyframes = `
   @keyframes shimmer {
     0% { background-position: -200% 0; }
@@ -38,7 +38,7 @@ const Navbar = () => {
     navigate('/posts');
   };
  
-  // Combine all user-related effects into one
+
   useEffect(() => {
     const profileData = localStorage.getItem('profile');
     if (!profileData) {
@@ -139,7 +139,7 @@ const Navbar = () => {
                   animation: 'shimmer 1.5s infinite',
               }
             }}>
-              Connectify
+              PIXLY
             </Typography>
           </Link>
         </motion.div>

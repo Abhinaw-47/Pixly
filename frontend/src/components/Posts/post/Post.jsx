@@ -4,13 +4,15 @@ import {
   DialogContent, DialogActions, Avatar, IconButton, Collapse,
   Menu, MenuItem, Divider 
 } from '@mui/material';
-import { FaThumbsUp, FaTrash, FaEdit, FaHeart, FaUser, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaThumbsUp, FaTrash, FaEdit, FaHeart, FaUser, FaChevronDown, FaChevronUp, FaComment } from 'react-icons/fa';
 import CloseIcon from '@mui/icons-material/Close';
 import { keyframes } from '@mui/system';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { deletePost, getProfile, likePost } from '../../../actions/post';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getUsersByIds } from '../../../api';
+import CommentsSection from '../../CommentsSection';
+
 
 const heartPulse = keyframes`
   0%, 100% { transform: scale(1); }
@@ -27,6 +29,10 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [likesMenuAnchor, setLikesMenuAnchor] = useState(null);
   const [usersWhoLiked, setUsersWhoLiked] = useState([]);
+
+
+  const commentData = useSelector((state) => state.comments?.commentsByPost?.[post._id]);
+  const currentCommentCount = commentData?.totalComments ?? post.commentCount ?? 0;
 
   const profileHandler = (creatorId) => {
     dispatch(getProfile({ profile: creatorId }));
@@ -144,7 +150,7 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
           width: '100%',
           height: '100%',
           minHeight: '520px',
-          maxHeight: '600px',
+          maxHeight: '700px',
           display: 'flex',
           flexDirection: 'column',
           borderRadius: '16px',
@@ -196,7 +202,7 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
             {post.title}
           </Typography>
 
-          {/* Description - FIXED */}
+          {/* Description */}
           {post.description && (
             <Box sx={{ mb: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
               <Box sx={{
@@ -209,7 +215,7 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
                     maxHeight: isDescriptionExpanded ? '100px' : 'auto',
                     overflowY: isDescriptionExpanded ? 'auto' : 'hidden',
                     pr: isDescriptionExpanded ? 1 : 0,
-                    pb: isDescriptionExpanded ? 1 : 0, // Add padding bottom when expanded
+                    pb: isDescriptionExpanded ? 1 : 0,
                     '&::-webkit-scrollbar': {
                       width: '4px'
                     },
@@ -235,7 +241,6 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
                 </Collapse>
               </Box>
               
-              {/* Show More/Less Button - FIXED positioning */}
               {shouldShowExpandButton && (
                 <Box sx={{ mt: 0.5, flexShrink: 0 }}>
                   <Button
@@ -280,6 +285,7 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
 
         {/* Footer */}
         <Box sx={{ p: 2, pt: 1, borderTop: '1px solid rgba(255, 255, 255, 0.1)', flexShrink: 0 }}>
+          {/* Like details section */}
           {post.likes && post.likes.length > 0 && (
             <Box 
               onClick={handleLikesClick} 
@@ -298,25 +304,44 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
             </Box>
           )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Button 
-              onClick={handleLike} 
-              startIcon={
-                <Box sx={{ animation: isLiked ? `${heartPulse} 0.6s ease` : 'none' }}>
-                  {isLiked ? <FaHeart color="#F87171" size={18}/> : <FaThumbsUp size={18} />}
-                </Box>
-              } 
-              sx={{ 
-                color: isLiked ? '#F87171' : 'rgba(255, 255, 255, 0.7)', 
-                fontWeight: 'bold', 
-                textTransform: 'none', 
-                fontSize: '0.9rem', 
-                py: 0.5, 
-                px: 1 
-              }}
-            >
-              {post.likes?.length || 0}
-            </Button>
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button 
+                onClick={handleLike} 
+                startIcon={
+                  <Box sx={{ animation: isLiked ? `${heartPulse} 0.6s ease` : 'none' }}>
+                    {isLiked ? <FaHeart color="#F87171" size={18}/> : <FaThumbsUp size={18} />}
+                  </Box>
+                } 
+                sx={{ 
+                  color: isLiked ? '#F87171' : 'rgba(255, 255, 255, 0.7)', 
+                  fontWeight: 'bold', 
+                  textTransform: 'none', 
+                  fontSize: '0.9rem', 
+                  py: 0.5, 
+                  px: 1 
+                }}
+              >
+                {post.likes?.length || 0}
+              </Button>
+
+              {/* Comment Button*/}
+              <Button
+                startIcon={<FaComment size={16} />}
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                  fontWeight: 'bold', 
+                  textTransform: 'none', 
+                  fontSize: '0.9rem',
+                  py: 0.5,
+                  px: 1,
+                }}
+                onClick={()=>{navigate('/posts')}}
+              >
+                {currentCommentCount}
+              </Button>
+            </Box>
             
             <Box>
               {isOwner && (
@@ -331,6 +356,9 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
               )}
             </Box>
           </Box>
+
+          {/* Comments Section*/}
+          <CommentsSection postId={post._id} initialCommentCount={currentCommentCount} />
         </Box>
       </Paper>
 

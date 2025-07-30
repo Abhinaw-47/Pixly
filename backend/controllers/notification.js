@@ -1,12 +1,12 @@
 import Notification from '../models/notification.js';
 
-// GET /notifications
+
 export const getNotifications = async (req, res) => {
     try {
         const notifications = await Notification.find({ recipient: req.userId })
-            // Populate sender details. Your User model has 'name'.
+            
             .populate('sender', 'name')
-            .sort({ createdAt: -1 }); // Show newest first
+            .sort({ createdAt: -1 }); 
 
         res.status(200).json(notifications);
     } catch (error) {
@@ -14,7 +14,7 @@ export const getNotifications = async (req, res) => {
     }
 };
 
-// PATCH /notifications/:id/read
+
 export const markAsRead = async (req, res) => {
     try {
         const notification = await Notification.findById(req.params.id);

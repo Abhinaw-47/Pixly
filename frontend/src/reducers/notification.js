@@ -1,4 +1,4 @@
-// reducers/notification.js
+
 
 const initialState = {
   isLoading: false,
@@ -23,7 +23,7 @@ const notificationReducer = (state = initialState, action) => {
     case 'ADD_NOTIFICATION':
       return {
         ...state,
-        // Add new notification to the top of the list
+       
         notifications: [action.payload, ...state.notifications],
         unreadCount: state.unreadCount + 1,
       };
@@ -35,11 +35,11 @@ const notificationReducer = (state = initialState, action) => {
       return {
         ...state,
         notifications: updatedNotifications,
-        // Recalculate unread count
+       
         unreadCount: updatedNotifications.filter(n => !n.read).length,
       };
       
-    case 'LOGOUT': // Clear notifications on logout
+    case 'LOGOUT': 
         return initialState;
 
     default:

@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { Box, TextField, InputAdornment, Typography, Container } from '@mui/material';
 import { FaSearch, FaGhost } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
-import { getPosts } from '../actions/post'; // Import getPosts
+import { getPosts } from '../actions/post'; 
 import Posts from './Posts/Posts';
 import CustomPagination from './CustomPagination';
-import Footer from './Footer'; // Import the new Footer
+import Footer from './Footer'; 
 
 const EmptyState = () => (
     <Container maxWidth="sm">
@@ -25,7 +25,6 @@ const MainFeed = ({ search, setSearch, handleSearch, handleKeyDown, setCurrentId
   const { posts, isLoading } = useSelector((state) => state.post);
   const dispatch = useDispatch();
 
-  // ✨ BUG FIX: Fetch posts on initial component mount if they don't exist.
   useEffect(() => {
     if (!posts.length) {
       dispatch(getPosts(page));

@@ -9,7 +9,7 @@ const SuggestedUsers = () => {
     const currentUser = JSON.parse(localStorage.getItem('profile'))?.result;
     const { profileId } = useParams(); // Get the ID of the profile being viewed
     
-    // Suggest other users, excluding the current logged-in user AND the profile owner
+    
     const suggested = (users || []).filter(user => user._id !== currentUser?._id && user._id !== profileId).slice(0, 6);
     
     if (suggested.length === 0) return null;

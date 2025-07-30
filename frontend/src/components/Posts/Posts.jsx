@@ -68,7 +68,7 @@ const Posts = ({ setCurrentId, setShowForm }) => {
       initial="hidden"
       animate="visible"
     >
-      {/* Force 2-column layout with explicit width control */}
+      
       <Box sx={{ 
         display: 'grid',
         gridTemplateColumns: 'repeat(2, 1fr)',

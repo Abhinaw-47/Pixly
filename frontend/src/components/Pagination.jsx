@@ -25,9 +25,9 @@ function Paginate({ page }) {
       color="primary"
       sx={{
         ".MuiPaginationItem-root": {
-          borderColor: "#3b82f6", // Tailwind's blue-500
+          borderColor: "#3b82f6", 
           color: "#fff",
-          backgroundColor: "rgba(31, 41, 55, 0.6)", // gray-800/60
+          backgroundColor: "rgba(31, 41, 55, 0.6)", 
           '&.Mui-selected': {
             backgroundColor: "#3b82f6",
             color: "#fff",

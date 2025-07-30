@@ -9,8 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import { googleSignin, signIn, signUp } from '../actions/auth';
-import Background from './Background'; // Import the consistent background
-import Footer from './Footer'; // Import the consistent footer
+import Background from './Background'; 
+import Footer from './Footer'; 
 
 const Auth = () => {
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '' });

@@ -16,13 +16,12 @@ import Background from './Background';
 const SIDEBAR_WIDTH = 280;
 const NAVBAR_HEIGHT = '88px';
 
-// ✨ Using the layout you provided for the loading state
 const LoadingState = () => (
   <Box sx={{ 
     display: 'grid',
     gridTemplateColumns: 'repeat(2, 1fr)',
     gap: 3,
-    '@media (max-width: 900px)': { // Adjusted breakpoint for consistency
+    '@media (max-width: 900px)': { 
       gridTemplateColumns: '1fr'
     }
   }}>
@@ -142,7 +141,7 @@ const LikedPosts = () => {
 
             {!isLoading && likedPosts && likedPosts.length > 0 && (
                 <motion.div variants={containerVariants} initial="hidden" animate="visible">
-                    {/* ✨ USING THE GRID STRUCTURE YOU PREFER */}
+                   
                     <Box sx={{ 
                       display: 'grid',
                       gridTemplateColumns: 'repeat(2, 1fr)',

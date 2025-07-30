@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Typography, Button, Paper } from '@mui/material';
-// ✨ FIX: Import FaQuestionCircle from 'fa' instead of the non-existent icon
 import { FaHome, FaQuestionCircle } from 'react-icons/fa'; 
 import { MdArrowBack } from 'react-icons/md';
 import { motion } from 'framer-motion';
@@ -81,7 +80,7 @@ const NotFound = () => {
                     boxShadow: '0 0 30px rgba(0, 255, 255, 0.4)',
                   }}
                 >
-                  {/* ✨ FIX: Replaced the broken icon with a valid one */}
+                  
                   <FaQuestionCircle size={50} color="#000" />
                 </Box>
               </Box>

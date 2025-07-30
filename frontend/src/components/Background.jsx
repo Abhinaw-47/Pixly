@@ -8,9 +8,9 @@ const Background = () => (
       raysOrigin="top-center"
       raysColor="#FFFFFF"
       raysSpeed={0.5}
-      lightSpread={3.2}     // More Spread
-      rayLength={8.0}       // Fuller Length
-      saturation={0.9}      // Softer white, not harsh
+      lightSpread={3.2}     
+      rayLength={8.0}       
+      saturation={0.9}      
       followMouse={true}
       mouseInfluence={0.04}
       noiseAmount={0.08}
