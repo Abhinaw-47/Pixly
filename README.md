@@ -1,8 +1,7 @@
-# 🚀 Connectify Social Media Platform
+# PIXLY
 
-![Connectify Main Feed](https://i.imgur.com/K1j11iF.jpg)
 
-**Connectify** is a feature-rich, production-grade social media web application built with the **MERN (MongoDB, Express.js, React, Node.js) stack**. It's designed to be a modern, scalable, and secure platform with real-time capabilities, an immersive user interface, and advanced authentication features, including OTP email verification.
+**PIXLY** is a feature-rich, production-grade social media web application built with the **MERN (MongoDB, Express.js, React, Node.js) stack**. It's designed to be a modern, scalable, and secure platform with real-time capabilities, an immersive user interface, and advanced authentication features, including OTP email verification.
 
 ---
 
