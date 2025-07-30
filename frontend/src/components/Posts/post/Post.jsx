@@ -140,6 +140,10 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
     }
     return `${likesCount} people like this`;
   };
+   const handleCommentClick = (e) => {
+    e.stopPropagation();
+    
+  };
 
   return (
     <>
@@ -337,7 +341,7 @@ const Post = ({ post, setCurrentId, setShowForm }) => {
                   py: 0.5,
                   px: 1,
                 }}
-                onClick={()=>{navigate('/posts')}}
+                onClick={handleCommentClick}
               >
                 {currentCommentCount}
               </Button>

@@ -15,15 +15,36 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { getComments, addComment, deleteComment, likeComment } from '../actions/comment';
 
-
 const CommentsSection = ({ postId, initialCommentCount = 0 }) => {
   const dispatch = useDispatch();
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
-  
   const [showComments, setShowComments] = useState(false); 
-  const [user] = useState(() => JSON.parse(localStorage.getItem('profile')));
+  
+  
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('profile')));
+
+  
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setUser(JSON.parse(localStorage.getItem('profile')));
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    
+    const interval = setInterval(() => {
+      const currentUser = JSON.parse(localStorage.getItem('profile'));
+      if (JSON.stringify(currentUser) !== JSON.stringify(user)) {
+        setUser(currentUser);
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [user]);
 
   const commentsState = useSelector((state) => state.comments?.commentsByPost?.[postId]);
   const loading = useSelector((state) => state.comments?.loading?.[postId] || false);
@@ -43,6 +64,8 @@ const CommentsSection = ({ postId, initialCommentCount = 0 }) => {
   const handleAddComment = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    
+  
     if (!newComment.trim() || !user?.result) return;
 
     setSubmitting(true);
@@ -55,10 +78,14 @@ const CommentsSection = ({ postId, initialCommentCount = 0 }) => {
   };
 
   const handleDeleteComment = (commentId) => {
+   
+    if (!user?.result) return;
     dispatch(deleteComment(commentId, postId));
   };
 
   const handleLikeComment = (commentId) => {
+   
+    if (!user?.result) return;
     dispatch(likeComment(commentId, postId));
   };
 
@@ -88,15 +115,29 @@ const CommentsSection = ({ postId, initialCommentCount = 0 }) => {
   return (
     <Box sx={{ width: '100%', mt: 1 }} onClick={(e) => e.stopPropagation()}>
       {(totalComments > 0) && (
-        <Button onClick={toggleComments} sx={{ color: 'rgba(255, 255, 255, 0.7)', textTransform: 'none', p: 0, mb: 1, fontSize: '0.875rem', '&:hover': { backgroundColor: 'transparent', color: '#00FFFF' } }} endIcon={showComments ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}>
+        <Button 
+          onClick={toggleComments} 
+          sx={{ 
+            color: 'rgba(255, 255, 255, 0.7)', 
+            textTransform: 'none', 
+            p: 0, 
+            mb: 1, 
+            fontSize: '0.875rem', 
+            '&:hover': { backgroundColor: 'transparent', color: '#00FFFF' } 
+          }} 
+          endIcon={showComments ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+        >
           {totalComments === 1 ? 'View 1 comment' : `View all ${totalComments} comments`}
         </Button>
       )}
 
+     
       {user?.result && (
         <Box sx={{ my: 2 }}>
           <Box component="form" onSubmit={handleAddComment} sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-            <Avatar sx={{ bgcolor: '#00FFFF', color: '#000', width: 32, height: 32 }}><FaUser size={14} /></Avatar>
+            <Avatar sx={{ bgcolor: '#00FFFF', color: '#000', width: 32, height: 32 }}>
+              <FaUser size={14} />
+            </Avatar>
             <TextField
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
@@ -105,8 +146,14 @@ const CommentsSection = ({ postId, initialCommentCount = 0 }) => {
               fullWidth
               disabled={submitting}
               InputProps={{
-                  disableUnderline: true,
-                  sx: { color: 'white', fontSize: '0.9rem', p: '8px 12px', backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: '20px' }
+                disableUnderline: true,
+                sx: { 
+                  color: 'white', 
+                  fontSize: '0.9rem', 
+                  p: '8px 12px', 
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)', 
+                  borderRadius: '20px' 
+                }
               }}
             />
             {newComment.trim() && (
@@ -136,33 +183,86 @@ const CommentsSection = ({ postId, initialCommentCount = 0 }) => {
           {comments.map((comment, index) => (
             <Box key={comment._id}>
               <Box sx={{ display: 'flex', gap: 1.5, py: 1.5 }}>
-                <Avatar sx={{ bgcolor: '#00FFFF', color: '#000', width: 32, height: 32 }}><FaUser size={14} /></Avatar>
+                <Avatar sx={{ bgcolor: '#00FFFF', color: '#000', width: 32, height: 32 }}>
+                  <FaUser size={14} />
+                </Avatar>
                 <Box sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'white' }}>{comment.authorName}</Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>{getTimeAgo(comment.createdAt)}</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'white' }}>
+                      {comment.authorName}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                      {getTimeAgo(comment.createdAt)}
+                    </Typography>
                   </Box>
-                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', py: 0.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{comment.text}</Typography>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.9)', 
+                      py: 0.5, 
+                      whiteSpace: 'pre-wrap', 
+                      wordBreak: 'break-word' 
+                    }}
+                  >
+                    {comment.text}
+                  </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <IconButton onClick={(e) => { e.stopPropagation(); handleLikeComment(comment._id); }} size="small" sx={{ color: comment.likes?.includes(user?.result?._id) ? '#F87171' : 'rgba(255, 255, 255, 0.5)', '&:hover': { backgroundColor: 'rgba(248, 113, 113, 0.1)' } }}>
+                   
+                    <IconButton 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        if (user?.result) {
+                          handleLikeComment(comment._id);
+                        }
+                      }} 
+                      size="small" 
+                      sx={{ 
+                        color: comment.likes?.includes(user?.result?._id) ? '#F87171' : 'rgba(255, 255, 255, 0.5)', 
+                        '&:hover': { backgroundColor: 'rgba(248, 113, 113, 0.1)' },
+                        cursor: user?.result ? 'pointer' : 'default'
+                      }}
+                    >
                       <FaHeart size={12} />
                     </IconButton>
-                    {comment.likes?.length > 0 && (<Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>{comment.likes.length}</Typography>)}
-                     {user?.result?._id === comment.author && (
-                      <IconButton onClick={(e) => { e.stopPropagation(); handleDeleteComment(comment._id); }} size="small" sx={{ color: 'rgba(255, 255, 255, 0.5)', '&:hover': { color: '#F87171', backgroundColor: 'rgba(248, 113, 113, 0.1)' } }}>
+                    {comment.likes?.length > 0 && (
+                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                        {comment.likes.length}
+                      </Typography>
+                    )}
+                   
+                    {user?.result?._id === comment.author && (
+                      <IconButton 
+                        onClick={(e) => { e.stopPropagation(); handleDeleteComment(comment._id); }} 
+                        size="small" 
+                        sx={{ 
+                          color: 'rgba(255, 255, 255, 0.5)', 
+                          '&:hover': { color: '#F87171', backgroundColor: 'rgba(248, 113, 113, 0.1)' } 
+                        }}
+                      >
                         <FaTrash size={10} />
                       </IconButton>
                     )}
                   </Box>
                 </Box>
               </Box>
-              {index < comments.length - 1 && (<Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)', ml: 6 }} />)}
+              {index < comments.length - 1 && (
+                <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)', ml: 6 }} />
+              )}
             </Box>
           ))}
 
           {hasMore && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-              <Button onClick={loadMoreComments} disabled={loading} size="small" sx={{ color: 'rgba(255, 255, 255, 0.7)', textTransform: 'none', '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#00FFFF' } }}>
+              <Button 
+                onClick={loadMoreComments} 
+                disabled={loading} 
+                size="small" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                  textTransform: 'none', 
+                  '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#00FFFF' } 
+                }}
+              >
                 {loading ? <CircularProgress size={16} /> : 'Load more'}
               </Button>
             </Box>

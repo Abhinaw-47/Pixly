@@ -1,11 +1,18 @@
 import React from 'react';
 import { Paper, BottomNavigation, BottomNavigationAction } from '@mui/material';
-
 import { FaHome, FaPlusCircle, FaCommentDots, FaHeart } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 const BottomNavBar = ({ onShowForm }) => {
     const navigate = useNavigate();
+    
+    
+    const user = JSON.parse(localStorage.getItem('profile'));
+    
+  
+    if (!user?.result) {
+        return null;
+    }
 
     return (
         <Paper 
@@ -25,16 +32,36 @@ const BottomNavBar = ({ onShowForm }) => {
                 showLabels
                 sx={{ background: 'transparent' }}
             >
-                <BottomNavigationAction label="Home" icon={<FaHome />} sx={{ color: 'white' }} onClick={() => navigate('/posts')} />
+                <BottomNavigationAction 
+                    label="Home" 
+                    icon={<FaHome />} 
+                    sx={{ color: 'white' }} 
+                    onClick={() => navigate('/posts')} 
+                />
                 
-                
-                <BottomNavigationAction label="Liked" icon={<FaHeart />} sx={{ color: 'white' }} onClick={() => navigate('/posts/likes')} />
+                <BottomNavigationAction 
+                    label="Liked" 
+                    icon={<FaHeart />} 
+                    sx={{ color: 'white' }} 
+                    onClick={() => navigate('/posts/likes')} 
+                />
 
-                <BottomNavigationAction label="Post" icon={<FaPlusCircle size={28} />} sx={{ color: '#00FFFF' }} onClick={onShowForm} />
-                <BottomNavigationAction label="Chat" icon={<FaCommentDots />} sx={{ color: 'white' }} onClick={() => navigate('/chat')} />
+                <BottomNavigationAction 
+                    label="Post" 
+                    icon={<FaPlusCircle size={28} />} 
+                    sx={{ color: '#00FFFF' }} 
+                    onClick={onShowForm} 
+                />
+                
+                <BottomNavigationAction 
+                    label="Chat" 
+                    icon={<FaCommentDots />} 
+                    sx={{ color: 'white' }} 
+                    onClick={() => navigate('/chat')} 
+                />
             </BottomNavigation>
         </Paper>
     );
-}
+};
 
 export default BottomNavBar;
